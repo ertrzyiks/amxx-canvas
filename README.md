@@ -5,6 +5,10 @@ amxx-canvas
 Proof-of-concept code which aim to provide programable displayer inside Half-Life multiplayer gameplay. 
 
 
-## About
+## Prerequisites
+- Half Life Dedicated Server or listen server created by game client (New Game)
+- AMX mod X - http://www.amxmodx.org/
 
-http://www.amxmodx.org/
+
+## Installation
+Extract repository package into server root path.
