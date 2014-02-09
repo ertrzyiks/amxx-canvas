@@ -1,8 +1,38 @@
 #include <amxmodx>
 #include <amxmisc>
 #include <fakemeta>
-#include <engine>
+#include <canvas>
 #include <xs>
+
+enum Canvas
+{
+	cols,
+	rows,
+	
+	scale,
+	
+	originX,
+	originY,
+	originZ,
+	
+	directionX,
+	directionY,
+	directionZ,
+	
+	rightX,
+	rightY,
+	rightZ,
+	
+	downX,
+	downY,
+	downZ
+}
+
+enum CanvasInitializer
+{
+	callback,
+	tempo
+}
 
 #define PLUGIN "Canvas"
 #define VERSION "0.0.1"
@@ -12,10 +42,13 @@ new bool:gbTraceHooks[32];
 new giTraceHooksActive = 0;
 new ghTraceLine;
 
-new gPixel;
-
 new Array:gCanvas;
+new Array:gCanvasReady;
+new Array:gCanvasTick;
+new Array:gCanvasMaxTick;
 new Array:gCanvasPixels;
+new Array:gCanvasInitializers;
+new Array:gCanvasInitializerNames;
 
 new const gszPixelModel[] = "sprites/pixel.spr";
 
@@ -24,17 +57,29 @@ public plugin_init ()
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
 	register_clcmd( "amx_canvas", "cmdCanvas", ADMIN_CFG );
-	register_clcmd( "ents", "cmdEntities", ADMIN_CFG );
 	
 	register_forward( FM_StartFrame, "fwStartFrame", 1 );
 	
-	gCanvas = ArrayCreate();
-	gCanvasPixels = ArrayCreate();
+	gCanvas = ArrayCreate( _:Canvas );
+	gCanvasReady = ArrayCreate();
+	gCanvasTick = ArrayCreate();
+	gCanvasMaxTick = ArrayCreate();
+	gCanvasPixels = ArrayCreate( CANVAS_MAX_PIXELS);
+	gCanvasInitializers = ArrayCreate( _:CanvasInitializer );
+	gCanvasInitializerNames = ArrayCreate( CANVAS_MAX_INIT_NAME );
 }
 
 public plugin_precache ()
 {
-	gPixel = precache_model( gszPixelModel );
+	precache_model( gszPixelModel );
+}
+
+public plugin_natives()
+{
+	register_library( "Canvas" );
+	register_native( "register_canvas_initializer", "nativeRegisterCanvasInitializer" );
+	//register_native( "canvas_get_pixels", "nativeCanvasGetPixels" );
+	//register_native( "canvas_set_pixels", "nativeCanvasSetPixels" );
 }
 
 public cmdCanvas ( id, level, cid )
@@ -44,11 +89,6 @@ public cmdCanvas ( id, level, cid )
 		
 	createCanvasByAim( id );
 	return PLUGIN_HANDLED;
-}
-
-public cmdEntities( id )
-{
-	client_print( id, print_chat, "Entities %d/%d", engfunc(EngFunc_NumberOfEntities), global_get(glb_maxEntities) );
 }
 
 public fwTraceLine( const Float:fStart[3], const Float:fEnd[3], conditions, id, tr_handle )
@@ -63,7 +103,7 @@ public fwTraceLine( const Float:fStart[3], const Float:fEnd[3], conditions, id, 
 		get_tr2( tr_handle, TR_vecEndPos, fOrigin );
 		get_tr2( tr_handle, TR_vecPlaneNormal, fVec );
 		
-		createCanvas( fOrigin, fVec, 12, 12 );
+		createCanvas( fOrigin, fVec );
 		
 		if ( giTraceHooksActive == 0 )
 		{
@@ -74,46 +114,140 @@ public fwTraceLine( const Float:fStart[3], const Float:fEnd[3], conditions, id, 
 	return FMRES_IGNORED;
 }
 
+public nativeRegisterCanvasInitializer( plugin, argc )
+{
+	if ( argc < 3 )
+	{
+		log_error( AMX_ERR_PARAMS, "register_canvas_initializer expects two arguments, %d given", argc );
+		return -1;
+	}
+	
+	
+	
+	new szName[CANVAS_MAX_INIT_NAME];
+	get_string( 1, szName, CANVAS_MAX_INIT_NAME - 1 );
+	
+	new canvasInitializer[CanvasInitializer];
+	new szCallback[32];
+	get_string( 2, szCallback, 31 );
+	canvasInitializer[callback] = CreateOneForward( plugin, szCallback, FP_CELL, FP_CELL );
+	canvasInitializer[tempo] = get_param( 3 );
+	
+	ArrayPushArray( gCanvasInitializers, canvasInitializer );
+	ArrayPushArray( gCanvasInitializerNames, szName );
+	return ArraySize( gCanvasInitializers ) - 1;
+}
+
+public nativeCanvasGetPixelsNum( plugin, argc )
+{
+	
+}
 
 public fwStartFrame()
 {
-	creatingTick();
+	new canvasNum = ArraySize( gCanvas );
+	
+	for ( new i = 0; i < canvasNum; i++ )
+	{
+		new ready = ArrayGetCell( gCanvasReady, i );
+		
+		if ( ! ready )
+		{
+			creatingTick( i );
+		}
+	}
 }
 
-new creatingLastIndex = -1;
-new creatingIndex = 0;
-new Float:gfBaseOrigin[3], Float:gfAngle[3], Float:gfRight[3], Float:gfDown[3];
-new giWidth, giHeight;
-
-creatingTick()
+onCanvasReady( canvas )
 {
-	if ( creatingLastIndex == -1 )
+	
+}
+
+/**
+ * Pixels of canvas can not be created instantly.
+ * Each frame we got creation tick and decide which pixels should be created.
+ *
+ * Controller of this process is called Canvas Initializer.
+ */
+creatingTick( canvas )
+{
+	new tick = ArrayGetCell( gCanvasTick, canvas );
+	new maxtick = ArrayGetCell( gCanvasMaxTick, canvas );
+	
+	if ( tick >= maxtick )
 	{
+		ArraySetCell( gCanvasReady, canvas, 1 );
+		onCanvasReady( canvas );
 		return;
 	}
 	
-	if ( creatingIndex >= creatingLastIndex )
+	new init[2];
+	ArrayGetArray( gCanvasInitializers, 0, init );
+	
+	new initCallback = init[0];
+	new initTempo = init[1];
+	new pixelIndex;
+	
+	for ( new i = 0; i < initTempo; i++ )
 	{
-		creatingLastIndex = -1;
-		return;
+		
+		if ( !ExecuteForward( initCallback, pixelIndex, canvas, tick + i ) )
+		{
+			pixelIndex = tick + i;
+		}
+	
+		creatingTickByPixel( canvas, pixelIndex );
+		
 	}
 	
-	new row = creatingIndex / giWidth;
-	new col = creatingIndex % giWidth;
+	ArraySetCell( gCanvasTick, canvas, tick + initTempo );
+}
+
+creatingTickByPixel( canvas, pixelIndex )
+{
+	new pixels[CANVAS_MAX_PIXELS];
+	ArrayGetArray(gCanvasPixels, canvas, pixels);
+	
+	new canvasData[Canvas];
+	ArrayGetArray( gCanvas, canvas, canvasData );
+	
+	new Float:fBaseOrigin[3], Float:fDown[3], Float:fRight[3], Float:fAngle[3], pixelSize;
+	fBaseOrigin[0] = Float:canvasData[originX];
+	fBaseOrigin[1] = Float:canvasData[originY];
+	fBaseOrigin[2] = Float:canvasData[originZ];
+	
+	fDown[0] = Float:canvasData[downX];
+	fDown[1] = Float:canvasData[downY];
+	fDown[2] = Float:canvasData[downZ];
+	
+	fRight[0] = Float:canvasData[rightX];
+	fRight[1] = Float:canvasData[rightY];
+	fRight[2] = Float:canvasData[rightZ];
+	
+	fAngle[0] = Float:canvasData[directionX];
+	fAngle[1] = Float:canvasData[directionY];
+	fAngle[2] = Float:canvasData[directionZ];
+	
+	pixelSize = canvasData[scale];
+	
+	new width = canvasData[cols];
+	new row = pixelIndex / width;
+	new col = pixelIndex % width;
 	
 	new Float:fMyOrigin[3], Float:fMyDown[3], Float:fMyRight[3];
 	
-	xs_vec_mul_scalar( gfDown, float(row), fMyDown );
-	xs_vec_mul_scalar( gfRight, float(col), fMyRight );
+	xs_vec_mul_scalar( fDown, float(row) * pixelSize, fMyDown );
+	xs_vec_mul_scalar( fRight, float(col) * pixelSize, fMyRight );
 	
-	xs_vec_copy( gfBaseOrigin, fMyOrigin);
+	xs_vec_copy( fBaseOrigin, fMyOrigin);
 	xs_vec_add( fMyOrigin, fMyDown, fMyOrigin );
 	xs_vec_add( fMyOrigin, fMyRight, fMyOrigin );
 			
-	createPixel( fMyOrigin, gfAngle );
-	
-	creatingIndex++;
+	pixels[ pixelSize ] = createPixel( fMyOrigin, fAngle, pixelSize );
+	ArraySetArray( gCanvasPixels, canvas, pixels );
 }
+
+
 
 createCanvasByAim ( id )
 {
@@ -131,7 +265,7 @@ createCanvasByAim ( id )
 	}
 }
 
-createCanvas ( const Float:fOrigin[3], const Float:fVec[3], width = 256, height = 240 )
+createCanvas ( const Float:fOrigin[3], const Float:fVec[3], width = 28, height = 8, pixelsize = 8 )
 {
 	new Float:fAngle[3];
 	fAngle[0] = -fVec[0]
@@ -150,20 +284,43 @@ createCanvas ( const Float:fOrigin[3], const Float:fVec[3], width = 256, height 
 	
 	angle_vector( fAngle, ANGLEVECTOR_RIGHT, fRight );
 	
+	new canvasData[Canvas];
+	canvasData[cols] = width;
+	canvasData[rows] = height;
+	canvasData[scale] = pixelsize;
+
+	canvasData[originX] = _:fBaseOrigin[0];
+	canvasData[originY] = _:fBaseOrigin[1];
+	canvasData[originZ] = _:fBaseOrigin[2];
 	
-	creatingIndex = 0;
-	creatingLastIndex = width * height;
-	xs_vec_copy( fBaseOrigin , gfBaseOrigin );
-	xs_vec_copy( fAngle, gfAngle );
-	xs_vec_copy( fRight, gfRight );
-	xs_vec_copy( fDown, gfDown );
+	canvasData[directionX] = _:fAngle[0];
+	canvasData[directionY] = _:fAngle[1];
+	canvasData[directionZ] = _:fAngle[2];
 	
-	giWidth = width;
-	giHeight = height;
+	canvasData[rightX] = _:fRight[0];
+	canvasData[rightY] = _:fRight[1];
+	canvasData[rightZ] = _:fRight[2];
+	
+	canvasData[downX] = _:fDown[0];
+	canvasData[downY] = _:fDown[1];
+	canvasData[downZ] = _:fDown[2];
+	
+	new pixels[CANVAS_MAX_PIXELS];
+	
+	ArrayPushArray( gCanvas, canvasData );
+	ArrayPushCell( gCanvasReady, 0 );
+	ArrayPushArray( gCanvasPixels, pixels );
+	ArrayPushCell( gCanvasTick, 0 );
+	ArrayPushCell( gCanvasMaxTick, width * height );
 }
 
-createPixel( const Float: fOrigin[3], Float:fAngle[3] )
+createPixel( const Float: fOrigin[3], Float:fAngle[3], pixelSize )
 {
+	new Float:fColor[3];
+	fColor[0] = random_float( 1.0, 255.0 );
+	fColor[1] = random_float( 1.0, 255.0 );
+	fColor[2] = random_float( 1.0, 255.0 );
+	
 	new ent = engfunc( EngFunc_CreateNamedEntity, engfunc(EngFunc_AllocString, "info_target") );
 	set_pev( ent, pev_origin, fOrigin );
 	set_pev( ent, pev_classname, "pixel" );
@@ -172,8 +329,8 @@ createPixel( const Float: fOrigin[3], Float:fAngle[3] )
 	engfunc( EngFunc_SetModel, ent, gszPixelModel );
 	set_pev( ent, pev_origin, fOrigin );
 	set_pev( ent, pev_angles, fAngle );
-	set_pev( ent, pev_scale, 0.125 );
-	set_pev( ent, pev_rendercolor, Float:{ 1.0, 1.0, 1.0 } );
+	set_pev( ent, pev_scale,  0.125 * pixelSize );
+	set_pev( ent, pev_rendercolor, fColor );
 	set_pev( ent, pev_renderfx, 0 );
 	set_pev( ent, pev_rendermode, kRenderNormal );
 	set_pev( ent, pev_renderamt, 255 );
