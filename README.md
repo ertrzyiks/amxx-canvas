@@ -12,3 +12,6 @@ Proof-of-concept code which aim to provide programable displayer inside Half-Lif
 
 ## Installation
 Extract repository package into server root path.
+
+## Screenshots
+![Static canvas](/screenshots/screenshot1.png "Static canvas with random pixels color")
