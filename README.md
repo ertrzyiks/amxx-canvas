@@ -9,9 +9,14 @@ Proof-of-concept code which aim to provide programable displayer inside Half-Lif
 - Half Life Dedicated Server or listen server created by game client (New Game)
 - AMX mod X - http://www.amxmodx.org/
 
+## Engine limits
+Each pixel of displayer must be permanent or temporary entity. It looks like we cant render more than ~250 visible object in the same time. Maximal number of entities in general is configurable, but i cant find way to increase this visiblity limit. 
+
+That reduced planned resolution to 28x8 for text experiments.
+
 
 ## Installation
 Extract repository package into server root path.
 
 ## Screenshots
-![Static canvas](/screenshots/screenshot1.png "Static canvas with random pixels color")
+![Static canvas](/screenshots/screenshot1.png "Static canvas with random color of pixels")
