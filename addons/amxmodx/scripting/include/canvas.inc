@@ -1,3 +1,25 @@
+/**
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2014 Mateusz Derks
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 #if defined _canvas_included
   #endinput
 #endif
@@ -5,6 +27,7 @@
 
 #define CANVAS_MAX_PIXELS 256
 #define CANVAS_MAX_INIT_NAME 32
+#define CANVAS_MAX_PROGRAM_NAME 32
 
 
 /**
@@ -112,6 +135,45 @@ native bool:canvas_get_pixels( canvas, pixels[], size = CANVAS_MAX_PIXELS );
  * @return {Bool} True on success, false otherwise
  */
 native bool:canvas_set_pixels( canvas, pixels[], size = CANVAS_MAX_PIXELS );
+
+
+/**
+ * @param {Int} canvas Canvas id
+ * @param {Int} &width Referenced variable will be filled with canvas width in pixels
+ * @param {Int} &height Referenced variable will be filled with canvas height in pixels
+ */
+native canvas_get_size( canvas, &width, &height );
+
+/**
+ * @param {Int} canvas Canvas id
+ * @param {Int} width Canvas width in pixels
+ * @param {Int} height Canvas height in pixels
+ */
+native canvas_set_size( canvas, width, height );
+
+/**
+ * @param {Int} canvas Canvas id
+ * @return {Int} Canvas width in pixels
+ */
+native canvas_get_width( canvas );
+
+/**
+ * @param {Int} canvas Canvas id
+ * @param {Int} width New width in pixels
+ */
+native canvas_set_width( canvas, width );
+
+/**
+ * @param {Int} canvas Canvas id
+ * @return Canvas height in pixels
+ */
+native canvas_get_height( canvas );
+
+/**
+ * @param {Int} canvas Canvas id
+ * @param {Int} height New height in pixels
+ */
+native canvas_set_height( canvas, height );
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1045\\ f0\\ fs16 \n\\ par }
 */

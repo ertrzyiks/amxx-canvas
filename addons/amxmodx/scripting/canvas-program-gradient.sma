@@ -19,27 +19,18 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
  * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * 
- * Canvas Initializator. Draw canvas line by line, from top to bottom.
  */
 #include <amxmodx>
 #include <amxmisc>
 #include <canvas>
 
-#define PLUGIN "Canvas Init - Progressive"
+#define PLUGIN "Canvas Program - Gradient"
 #define VERSION "1.0.0"
 #define AUTHOR "R3X"
 
 
 public plugin_init() {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
-	
-	register_canvas_initializer( "Progressive", "cbInitializer", 4 );
-}
-
-public cbInitializer( canvas, tick )
-{
-	return tick;
 }
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1045\\ f0\\ fs16 \n\\ par }
