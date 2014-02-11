@@ -74,6 +74,7 @@ new bool:gbTraceHooks[32];
 new giTraceHooksActive = 0;
 new ghTraceLine;
 
+new Float:gCanvasStart[CANVAS_MAX_INSTANCES];
 new gCanvas[CANVAS_MAX_INSTANCES][Canvas];
 new gCanvasPixels[CANVAS_MAX_INSTANCES][CANVAS_MAX_PIXELS];
 new giCanvasIndex = 0;
@@ -110,13 +111,18 @@ public plugin_natives()
 {
 	register_library( "Canvas" );
 	register_native( "register_canvas_initializer", "nativeRegisterCanvasInitializer" );
+	register_native( "register_canvas_program", "nativeRegisterCanvasProgram" );
+	
 	register_native( "canvas_get_pixels", "nativeCanvasGetPixels" );
 	register_native( "canvas_set_pixels", "nativeCanvasSetPixels" );
+	
 	register_native( "canvas_get_width", "nativeCanvasGetWidth" );
-	register_native( "canvas_get_height", "nativeCanvasGetHeight" );
-	register_native( "canvas_get_size", "nativeCanvasGetSize" );
 	register_native( "canvas_set_width", "nativeCanvasSetWidth" );
+	
+	register_native( "canvas_get_height", "nativeCanvasGetHeight" );
 	register_native( "canvas_set_height", "nativeCanvasSetHeight" );
+	
+	register_native( "canvas_get_size", "nativeCanvasGetSize" );
 	register_native( "canvas_set_size", "nativeCanvasSetSize" );
 }
 
@@ -171,6 +177,23 @@ public nativeRegisterCanvasInitializer( plugin, argc )
 	return giCanvasInitializeIndex++;
 }
 
+public nativeRegisterCanvasProgram( plugin, argc )
+{
+	if ( argc < 2 )
+	{
+		log_error( AMX_ERR_PARAMS, "register_canvas_program expects 2 arguments, %d given", argc );
+		return -1;
+	}
+	
+	new szName[32];
+	get_string( 1, szName, 31 );
+	
+	new szCallback[32];
+	get_string( 2, szCallback, 31 );
+	
+	return createProgram( szName, szCallback, plugin );
+}
+
 public bool:nativeCanvasGetPixels( plugin, argc )
 {
 	static iColors[CANVAS_MAX_PIXELS];
@@ -221,8 +244,8 @@ public bool:nativeCanvasSetPixels( plugin, argc )
 	new canvas = get_param( 1 );
 	new size = min( get_param( 3 ), CANVAS_MAX_PIXELS );
 	new iColor[3], Float:fColor[3];
-		
-	get_array( 2, iColor, size );
+	
+	get_array( 2, iColors, size );
 	
 	for ( new i = 0; i < size; i++ )
 	{
@@ -271,8 +294,8 @@ public nativeCanvasGetSize( plugin, argc )
 	}
 	
 	new canvas = get_param( 1 );	
-	set_param_byref( 2, gCanvas[canvas][rows] );
-	set_param_byref( 3, gCanvas[canvas][cols] );
+	set_param_byref( 2, gCanvas[canvas][cols] );
+	set_param_byref( 3, gCanvas[canvas][rows] );
 }
 
 public nativeCanvasSetWidth( plugin, argc )
@@ -321,9 +344,17 @@ public fwStartFrame()
 		if ( isReady )
 		{
 			new cb, ret;
-			TrieGetCell( gPrograms, "Default", cb );
+			if ( get_gametime() - gCanvasStart[i] < 2.0 )
+			{
+				TrieGetCell( gPrograms, "Default", cb );
+			}
+			else
+			{
+				TrieGetCell( gPrograms, "Gradient", cb );
+			}
 			
-			if ( cb == -1 )
+			
+			if ( cb <= 0)
 			{
 				handleDefaultProgram( i );
 			}
@@ -341,7 +372,7 @@ public fwStartFrame()
 
 onCanvasReady( canvas )
 {
-	#pragma unused canvas
+	gCanvasStart[canvas] = get_gametime();
 }
 
 /**
@@ -525,6 +556,7 @@ createProgram( const szName[], const szFunction[], plugin_id = -1 )
 	}
 	TrieSetCell( gPrograms, szName, cb );
 	ArrayPushString( gProgramNames, szName );
+	return ArraySize( gProgramNames ) - 1;
 }
 
 

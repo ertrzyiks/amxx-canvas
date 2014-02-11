@@ -59,6 +59,12 @@ stock unzipColor( color, &r, &g, &b )
  */
 stock zipColor( r, g, b )
 {
+	//0,0,0 render as white, so we need 1,1,1 as black
+	if ( r == 0 && g == 0 && b == 0)
+	{
+		r = g = b = 1;
+	}
+	
 	r = r & 0xFF;
 	g = g & 0xFF;
 	b = b & 0xFF;
@@ -117,6 +123,15 @@ stock setB( color, newB )
  * @param iTempo {Int} Count of pixels per tick
  */
 native register_canvas_initializer( const szName[], const szCallback[], iTempo = 1 );
+
+
+/**
+ * Add new program. Callback is function called on each frame for each canvas which use this program.
+ * 
+ * @param szName {String} Name of program
+ * @param szCallback {String} Name of public function to call
+ */
+native register_canvas_program( const szName[], const szCallback[] );
 
 
 /**

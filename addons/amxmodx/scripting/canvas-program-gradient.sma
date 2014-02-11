@@ -28,10 +28,71 @@
 #define VERSION "1.0.0"
 #define AUTHOR "R3X"
 
+new giStartColors[CANVAS_MAX_INSTANCES][2];
+new giDiffColors[CANVAS_MAX_INSTANCES][2];
 
-public plugin_init() {
-	register_plugin(PLUGIN, VERSION, AUTHOR);
+public plugin_init() 
+{
+	register_plugin( PLUGIN, VERSION, AUTHOR );
+	
+	register_canvas_program( "Gradient", "onDrawGradient" );
 }
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1045\\ f0\\ fs16 \n\\ par }
-*/
+
+public onDrawGradient( canvas )
+{
+	new width, height;
+	canvas_get_size( canvas, width, height );
+	
+	
+	if ( giStartColors[canvas][0] == giStartColors[canvas][1])
+	{
+		giStartColors[canvas][0] = 0;
+		giStartColors[canvas][1] = 255;
+		giDiffColors[canvas][0] = 1;
+		giDiffColors[canvas][1] = -1;
+	}
+	
+	giStartColors[canvas][0] += giDiffColors[canvas][0];
+	giStartColors[canvas][1] += giDiffColors[canvas][1];
+	
+	if ( giStartColors[canvas][0] < 0 )
+	{
+		giDiffColors[canvas][0] *= -1;
+		giStartColors[canvas][0] = 0;
+	}
+	
+	if ( giStartColors[canvas][1] < 0 )
+	{
+		giDiffColors[canvas][1] *= -1;
+		giStartColors[canvas][1] = 0;
+	}
+	
+	
+	if ( giStartColors[canvas][0] > 255 )
+	{
+		giDiffColors[canvas][0] *= -1;
+		giStartColors[canvas][0] = 255;
+	}
+	
+	if ( giStartColors[canvas][1] > 255 )
+	{
+		giDiffColors[canvas][1] *= -1;
+		giStartColors[canvas][1] = 255;
+	}
+	
+	new r, b;
+	
+	static iColors[CANVAS_MAX_PIXELS];
+	for ( new i = 0; i < width ; i++ )
+	{
+		r = floatround(giStartColors[canvas][0] * float(i) / width );
+		b = floatround(giStartColors[canvas][1] * float(i) / width );
+		
+		for ( new j = 0; j < height; j++ )
+		{
+			iColors[ j * width + i ] = zipColor( r, 125, b );
+		}
+	}
+	
+	canvas_set_pixels( canvas, iColors );
+}
