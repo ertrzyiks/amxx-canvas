@@ -25,6 +25,9 @@
 #endif
 #define _canvas_included
 
+#define CANVAS_MAX_INSTANCES 12
+#define CANVAS_MAX_INITIALIZER 8
+
 #define CANVAS_MAX_PIXELS 256
 #define CANVAS_MAX_INIT_NAME 32
 #define CANVAS_MAX_PROGRAM_NAME 32

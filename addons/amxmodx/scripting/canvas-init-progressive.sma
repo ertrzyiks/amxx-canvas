@@ -32,7 +32,7 @@
 
 
 public plugin_init() {
-	register_plugin(PLUGIN, VERSION, AUTHOR);
+	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
 	register_canvas_initializer( "Progressive", "cbInitializer", 4 );
 }
