@@ -166,7 +166,7 @@ public nativeCanvasSetWidth( plugin, argc )
 	}
 	
 	new canvas = get_param( 1 );
-	gCanvas[canvas][cols] = get_param( 2 );
+	setSize( canvas, get_param( 2 ), gCanvas[canvas][rows] );
 }
 
 public nativeCanvasSetHeight( plugin, argc )
@@ -178,7 +178,7 @@ public nativeCanvasSetHeight( plugin, argc )
 	}
 	
 	new canvas = get_param( 1 );
-	gCanvas[canvas][rows] = get_param( 2 );
+	setSize( canvas, gCanvas[canvas][cols], get_param( 2 ) );
 }
 
 public nativeCanvasSetSize( plugin, argc )
@@ -189,9 +189,8 @@ public nativeCanvasSetSize( plugin, argc )
 		return;
 	}
 	
-	new canvas = get_param( 1 );
-	gCanvas[canvas][rows] = get_param( 2 );
-	gCanvas[canvas][cols] = get_param( 3 );
+	new canvas = get_param( 1 );	
+	setSize( canvas, get_param( 2 ), get_param( 3 ) );
 }
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1045\\ f0\\ fs16 \n\\ par }

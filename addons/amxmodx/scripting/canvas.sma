@@ -33,7 +33,7 @@
 #include <xs>
 
 #define PLUGIN "Canvas"
-#define VERSION "0.0.1"
+#define VERSION "0.1.0"
 #define AUTHOR "R3X"
 
 new const gszPixelModel[] = "sprites/pixel.spr";
@@ -54,7 +54,10 @@ public plugin_init ()
 	gPrograms = ArrayCreate( );
 	
 	createCanvasMenu();
+	createCanvasDetailsMenu();
 	createProgramMenu();
+	createSizeMenu();
+	createScaleMenu();
 	
 	createProgram( "Default", "handleDefaultProgram" );
 }

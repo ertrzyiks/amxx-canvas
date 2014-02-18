@@ -1,5 +1,6 @@
 #include <amxmodx>
 #include <amxmisc>
+#include <fakemeta>
 
 enum Canvas
 {
@@ -187,8 +188,6 @@ createCanvas ( const Float:fOrigin[3], const Float:fVec[3], width = 28, height =
 	
 	angle_vector( fAngle, ANGLEVECTOR_RIGHT, fRight );
 	
-	gCanvas[giCanvasIndex][cols] = width;
-	gCanvas[giCanvasIndex][rows] = height;
 	gCanvas[giCanvasIndex][scale] = pixelsize;
 
 	gCanvas[giCanvasIndex][originX] = _:fBaseOrigin[0];
@@ -207,11 +206,9 @@ createCanvas ( const Float:fOrigin[3], const Float:fVec[3], width = 28, height =
 	gCanvas[giCanvasIndex][downY] = _:fDown[1];
 	gCanvas[giCanvasIndex][downZ] = _:fDown[2];
 	
-	
-	gCanvas[giCanvasIndex][init_tick] = 0; 
-	gCanvas[giCanvasIndex][ready] = 0; 
 	gCanvas[giCanvasIndex][programId] = 0; 
-	gCanvas[giCanvasIndex][init_maxtick] = width * height; 
+	
+	setSize( giCanvasIndex, width, height );
 	
 	return giCanvasIndex++;
 }
@@ -273,9 +270,53 @@ handleDefaultProgram( canvas )
 	}
 }
 
+getProgram( canvas )
+{
+	return gCanvas[canvas][programId];
+}
+
 setProgram( canvas, program )
 {
 	gCanvas[canvas][programId] = program;
+}
+
+getSize( canvas, &width, &height )
+{
+	width = gCanvas[canvas][cols];
+	height = gCanvas[canvas][rows];
+}
+
+setSize( canvas, width, height )
+{
+	gCanvas[canvas][cols] = width;
+	gCanvas[canvas][rows] = height;
+	
+	gCanvas[canvas][init_tick] = 0; 
+	gCanvas[canvas][ready] = 0; 
+	gCanvas[canvas][init_maxtick] = width * height; 
+	
+	for ( new i = 0; i < CANVAS_MAX_PIXELS; i++ )
+	{
+		new ent = gCanvasPixels[canvas][i];
+		
+		if ( pev_valid( ent ) )
+		{
+			engfunc( EngFunc_RemoveEntity, ent );
+		}
+		
+		gCanvasPixels[canvas][i] = 0;
+	}
+}
+
+getScale( canvas )
+{
+	return gCanvas[canvas][scale];
+}
+
+setScale( canvas, newScale )
+{
+	gCanvas[canvas][scale] = newScale;
+	setSize( canvas, gCanvas[canvas][cols], gCanvas[canvas][rows] );
 }
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1045\\ f0\\ fs16 \n\\ par }
