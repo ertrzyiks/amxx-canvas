@@ -17,3 +17,9 @@ del canvas-init-progressive2.amxx
 copy canvas-program-gradient.amxx addons\amxmodx\plugins\canvas-program-gradient.amxx
 copy canvas-program-gradient.amxx ..\..\plugins\canvas-program-gradient.amxx
 del canvas-program-gradient.amxx
+
+"..\amxxpc.exe" addons\amxmodx\scripting\canvas-program-tetris.sma
+copy canvas-program-tetris.amxx addons\amxmodx\plugins\canvas-program-tetris.amxx
+copy canvas-program-tetris.amxx ..\..\plugins\canvas-program-tetris.amxx
+del canvas-program-tetris.amxx
+

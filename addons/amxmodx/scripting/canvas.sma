@@ -38,6 +38,9 @@
 
 new const gszPixelModel[] = "sprites/pixel.spr";
 
+new Array:gPrograms;
+new Array:gProgramForceSizes;
+new Array:gProgramEvents;
 
 #include "canvas/menus.inl"
 #include "canvas/renderer.inl"
@@ -51,7 +54,9 @@ public plugin_init ()
 	
 	register_forward( FM_StartFrame, "fwStartFrame", 1 );
 	
-	gPrograms = ArrayCreate( );
+	gPrograms = ArrayCreate();
+	gProgramForceSizes = ArrayCreate( 2 );
+	gProgramEvents = ArrayCreate();
 	
 	createCanvasMenu();
 	createCanvasDetailsMenu();

@@ -1,8 +1,12 @@
+#include <amxmodx>
+#include <amxmisc>
+
 public plugin_natives()
 {
 	register_library( "Canvas" );
 	register_native( "register_canvas_initializer", "nativeRegisterCanvasInitializer" );
 	register_native( "register_canvas_program", "nativeRegisterCanvasProgram" );
+	register_native( "register_program_event", "nativeRegisterProgramEvent" );
 	
 	register_native( "canvas_get_pixels", "nativeCanvasGetPixels" );
 	register_native( "canvas_set_pixels", "nativeCanvasSetPixels" );
@@ -38,19 +42,53 @@ public nativeRegisterCanvasInitializer( plugin, argc )
 
 public nativeRegisterCanvasProgram( plugin, argc )
 {
-	if ( argc < 2 )
+	if ( argc < 4 )
 	{
-		log_error( AMX_ERR_PARAMS, "register_canvas_program expects 2 arguments, %d given", argc );
+		log_error( AMX_ERR_PARAMS, "register_canvas_program expects 4 arguments, %d given", argc );
 		return -1;
 	}
 	
-	new szName[32];
-	get_string( 1, szName, 31 );
+	new szName[CANVAS_MAX_PROGRAM_NAME];
+	get_string( 1, szName, CANVAS_MAX_PROGRAM_NAME - 1 );
 	
 	new szCallback[32];
-	get_string( 2, szCallback, 31 );
+	get_string( 2, szCallback, charsmax(szCallback) );
 	
-	return createProgram( szName, szCallback, plugin );
+	new forceWidth = get_param( 3 );
+	new forceHeight = get_param( 4 );
+	
+	return createProgram( szName, szCallback, forceWidth, forceHeight, plugin );
+}
+
+public nativeRegisterProgramEvent( plugin, argc )
+{
+	if ( argc < 3 )
+	{
+		log_error( AMX_ERR_PARAMS, "register_program_event expects 4 arguments, %d given", argc );
+		return -1;
+	}
+	
+	new program = get_param( 1 );
+	
+	new szEvent[32];
+	get_string( 2 , szEvent, charsmax(szEvent) );
+	
+	new szCallback[32];
+	get_string( 3, szCallback, charsmax(szCallback) );
+	
+	new cb = CreateOneForward( plugin, szCallback, FP_CELL );
+	
+	new Trie:events = ArrayGetCell( gProgramEvents, program );
+	new Array:cbs;
+	
+	if ( !TrieGetCell( events, szEvent, cbs ) )
+	{
+		cbs = ArrayCreate();
+		TrieSetCell( events, szEvent, cbs );
+	}
+	
+	ArrayPushCell( cbs, cb );
+	return ArraySize( cbs ) - 1;
 }
 
 public bool:nativeCanvasGetPixels( plugin, argc )

@@ -51,8 +51,6 @@ new gCanvasInitializers[CANVAS_MAX_INITIALIZER][CanvasInitializer];
 new gCanvasInitializerNames[CANVAS_MAX_INITIALIZER][CANVAS_MAX_INIT_NAME];
 new giCanvasInitializeIndex = 0;
 
-new Array:gPrograms;
-
 public fwStartFrame()
 {
 	for ( new i = 0; i < giCanvasInitializeIndex; i++ )
@@ -232,7 +230,7 @@ createPixel( const Float: fOrigin[3], Float:fAngle[3], pixelSize )
 	return ent;
 }
 
-createProgram( const szName[], const szFunction[], plugin_id = -1 )
+createProgram( const szName[], const szFunction[], forceWidth = 0, forceHeight = 0, plugin_id = -1 )
 {
 	new cb;
 	
@@ -248,6 +246,15 @@ createProgram( const szName[], const szFunction[], plugin_id = -1 )
 	
 	addProgramMenuItem( szName );
 	ArrayPushCell( gPrograms, cb );
+	
+	new forceSize[2];
+	forceSize[0] = forceWidth;
+	forceSize[1] = forceHeight;
+	ArrayPushArray( gProgramForceSizes, forceSize );
+	
+	new Trie:events = TrieCreate();
+	ArrayPushCell( gProgramEvents, events );
+	
 	return ArraySize( gPrograms ) - 1;
 }
 
@@ -278,6 +285,13 @@ getProgram( canvas )
 setProgram( canvas, program )
 {
 	gCanvas[canvas][programId] = program;
+	
+	new forceSize[2];
+	ArrayGetArray( gProgramForceSizes, program, forceSize );
+	if ( forceSize[0] > 0 && forceSize[1] > 0 )
+	{
+		setSize( canvas, forceSize[0], forceSize[1], true );
+	}
 }
 
 getSize( canvas, &width, &height )
@@ -286,8 +300,18 @@ getSize( canvas, &width, &height )
 	height = gCanvas[canvas][rows];
 }
 
-setSize( canvas, width, height )
+bool:setSize( canvas, width, height, bool:force = false )
 {
+	new program = getProgram( canvas );
+	new forceSize[2];
+	ArrayGetArray( gProgramForceSizes, program, forceSize );
+	
+	//Ignore when size is forced
+	if ( !force && forceSize[0] > 0 && forceSize[1] > 0 )
+	{
+		return false;
+	}
+	
 	gCanvas[canvas][cols] = width;
 	gCanvas[canvas][rows] = height;
 	
@@ -306,6 +330,7 @@ setSize( canvas, width, height )
 		
 		gCanvasPixels[canvas][i] = 0;
 	}
+	return true;
 }
 
 getScale( canvas )
@@ -316,7 +341,7 @@ getScale( canvas )
 setScale( canvas, newScale )
 {
 	gCanvas[canvas][scale] = newScale;
-	setSize( canvas, gCanvas[canvas][cols], gCanvas[canvas][rows] );
+	setSize( canvas, gCanvas[canvas][cols], gCanvas[canvas][rows], true );
 }
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1045\\ f0\\ fs16 \n\\ par }

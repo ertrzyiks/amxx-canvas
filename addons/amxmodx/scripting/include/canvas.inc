@@ -121,17 +121,34 @@ stock setB( color, newB )
  * @param szName {String} Name of initialize
  * @param szCallacbk {String} Name of public function to call
  * @param iTempo {Int} Count of pixels per tick
+ * @param {Int} Initializer id
  */
 native register_canvas_initializer( const szName[], const szCallback[], iTempo = 1 );
 
 
 /**
  * Add new program. Callback is function called on each frame for each canvas which use this program.
+ * If forceWidth and forceHeight are greater than 0, program will force given size before render.
  * 
  * @param szName {String} Name of program
- * @param szCallback {String} Name of public function to call
+ * @param szCallback {String} Name of public function to call on each frame
+ * @param [forceWidth=0] {Int}
+ * @param [forceHeight=0] {Int}
+ * @return {Int} Program id.
  */
-native register_canvas_program( const szName[], const szCallback[] );
+native register_canvas_program( const szName[], const szCallback[], forceWidth = 0, forceHeight = 0 );
+
+/**
+ * Register event callback for events. Currently supported events:
+ * 
+ * "init" callback( canvas )
+ * "quit" callback( canvas )
+ *
+ * @param program {Int} Program id
+ * @param szEvent {String} Name of event.
+ * @param szCallback {String} Name of public function to call on event
+ */
+native register_program_event( program, const szEvent[], const szCallback[] );
 
 
 /**

@@ -75,10 +75,24 @@ public handleCanvasMenu( id, menu, item )
  */
 createCanvasDetailsMenu()
 {
+	new cb = menu_makecallback( "checkCanvasDetailsSizeMenuItem" );
 	gCanvasDetailsMenu = menu_create("Canvas Details menu", "handleCanvasDetailsMenu");
 	menu_additem( gCanvasDetailsMenu, "Change program" );
-	menu_additem( gCanvasDetailsMenu, "Change size" );
+	menu_additem( gCanvasDetailsMenu, "Change size", "", 0, cb );
 	menu_additem( gCanvasDetailsMenu, "Change scale" );
+}
+
+public checkCanvasDetailsSizeMenuItem( id, menu, item )
+{
+	new program = getProgram(giCurrentCanvas[id]);
+	new forceSize[2];
+	ArrayGetArray( gProgramForceSizes, program, forceSize );
+	
+	if ( forceSize[0] > 0 && forceSize[1] > 0 )
+	{
+		return ITEM_DISABLED;
+	}
+	return ITEM_ENABLED;
 }
 
 public handleCanvasDetailsMenu( id, menu, item )
