@@ -70,7 +70,7 @@ bool:isInInteractionArea( id, canvas, Float:fMaxDistance = DEFAULT_DISTANCE, Flo
 	//Check if player looks at canvas
 	new Float:vfAngle[3];
 	pev( id, pev_v_angle, vfAngle );
-	xs_vec_mul_scalar( vfAngle, -1.0, vfAngle );
+	vfAngle[2] = -vfAngle[2];
 	angle_vector( vfAngle, ANGLEVECTOR_RIGHT, vfAngle );
 	
 	vfCanvasOrigin[0] = Float:gCanvas[canvas][rightX];
