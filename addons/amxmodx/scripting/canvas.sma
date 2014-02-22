@@ -38,12 +38,15 @@
 
 new const gszPixelModel[] = "sprites/pixel.spr";
 
+new giMaxPlayers;
+
 new Array:gPrograms;
 new Array:gProgramForceSizes;
 new Array:gProgramEvents;
 
 #include "canvas/menus.inl"
 #include "canvas/renderer.inl"
+#include "canvas/interaction.inl"
 #include "canvas/natives.inl"
 
 public plugin_init ()
@@ -53,6 +56,8 @@ public plugin_init ()
 	register_clcmd( "amx_canvas", "cmdCanvas", ADMIN_CFG );
 	
 	register_forward( FM_StartFrame, "fwStartFrame", 1 );
+	
+	giMaxPlayers = get_maxplayers();
 	
 	gPrograms = ArrayCreate();
 	gProgramForceSizes = ArrayCreate( 2 );
@@ -81,6 +86,36 @@ public cmdCanvas ( id, level, cid )
 	return PLUGIN_HANDLED;
 }
 
+
+public fwStartFrame()
+{
+	for ( new i = 0; i < giCanvasInitializeIndex; i++ )
+	{
+		new isReady = gCanvas[i][ready];
+		
+		if ( isReady )
+		{
+			new cb = ArrayGetCell( gPrograms, gCanvas[i][programId] ), ret;
+			
+			if ( cb <= 0)
+			{
+				handleDefaultProgram( i );
+			}
+			else
+			{
+				ExecuteForward( cb , ret, i );
+				checkForInteraction( i );
+			}
+		}
+		else
+		{
+			creatingTick( i );
+		}
+	}
+}
+
+
+
 public fwTraceLine( const Float:fStart[3], const Float:fEnd[3], conditions, id, tr_handle )
 {
 	static Float:fOrigin[3], Float:fVec[3];
@@ -104,8 +139,6 @@ public fwTraceLine( const Float:fStart[3], const Float:fEnd[3], conditions, id, 
 	
 	return FMRES_IGNORED;
 }
-
-
 
 createCanvasByAim ( id )
 {

@@ -76,7 +76,7 @@ public nativeRegisterProgramEvent( plugin, argc )
 	new szCallback[32];
 	get_string( 3, szCallback, charsmax(szCallback) );
 	
-	new cb = CreateOneForward( plugin, szCallback, FP_CELL );
+	new cb = CreateOneForward( plugin, szCallback, FP_CELL, FP_ARRAY, FP_CELL );
 	
 	new Trie:events = ArrayGetCell( gProgramEvents, program );
 	new Array:cbs;

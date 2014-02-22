@@ -139,10 +139,17 @@ native register_canvas_initializer( const szName[], const szCallback[], iTempo =
 native register_canvas_program( const szName[], const szCallback[], forceWidth = 0, forceHeight = 0 );
 
 /**
- * Register event callback for events. Currently supported events:
+ * Register event callback for events. Each callback should have following signature.
+ * 	callback( canvas, data[], length )
+ *
+ * Currently supported events:
  * 
- * "init" callback( canvas )
- * "quit" callback( canvas )
+ * "init" - on program begin, no data
+ * "quit" - on program end, no data
+ * "interaction:enter" - when player enters into interaction area, 
+ *	data[0]  - player id
+ * "interaction:leave" - when player leaves interaction area
+ *	data[0] - player id
  *
  * @param program {Int} Program id
  * @param szEvent {String} Name of event.

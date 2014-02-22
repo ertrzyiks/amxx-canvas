@@ -37,6 +37,10 @@ public plugin_init()
 	tetris = register_canvas_program( "Tetris", "onDraw", 10, 22 );
 	register_program_event( tetris, "init", "onInit" );
 	register_program_event( tetris, "quit", "onQuit" );
+	
+	register_program_event( tetris, "interaction:enter", "onEnter" );
+	register_program_event( tetris, "interaction:leave", "onLeave" );
+	register_program_event( tetris, "interaction:keypress", "onKeyPress" );
 }
 
 public onDraw( canvas )
@@ -46,10 +50,28 @@ public onDraw( canvas )
 
 public onInit( canvas )
 {
-	
+	client_print( 0, print_chat, "START TETRIS");
 }
 
 public onQuit( canvas )
+{
+	client_print( 0, print_chat, "END TETRIS");
+}
+
+public onEnter( canvas, data[], length )
+{
+	console_print(0, "LENG %d", length);
+	new id = data[0];
+	client_print( id, print_chat, "ENTERED");
+}
+
+public onLeave( canvas,  data[], length )
+{
+	new id = data[0];
+	client_print( id, print_chat, "LEFT")
+}
+
+public onKeyPress( canvas, key )
 {
 	
 }
