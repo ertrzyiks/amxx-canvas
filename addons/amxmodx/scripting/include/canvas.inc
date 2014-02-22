@@ -158,6 +158,21 @@ native register_canvas_program( const szName[], const szCallback[], forceWidth =
 native register_program_event( program, const szEvent[], const szCallback[] );
 
 
+
+
+/**
+ *
+ */
+native canvas_lock_user_camera( id, canvas = -1 );
+
+/**
+ *
+ */
+native canvas_unlock_user_camera( id );
+
+
+
+
 /**
  * Get colors of all pixels of canvas.
  * 

@@ -8,6 +8,9 @@ public plugin_natives()
 	register_native( "register_canvas_program", "nativeRegisterCanvasProgram" );
 	register_native( "register_program_event", "nativeRegisterProgramEvent" );
 	
+	register_native( "canvas_lock_user_camera", "nativeCanvasLockUserCamera" );
+	register_native( "canvas_unlock_user_camera", "nativeCanvasUnlockUserCamera" );
+	
 	register_native( "canvas_get_pixels", "nativeCanvasGetPixels" );
 	register_native( "canvas_set_pixels", "nativeCanvasSetPixels" );
 	
@@ -21,6 +24,10 @@ public plugin_natives()
 	register_native( "canvas_set_size", "nativeCanvasSetSize" );
 }
 
+
+/**
+ * Register canvas elements
+ */
 public nativeRegisterCanvasInitializer( plugin, argc )
 {
 	if ( argc < 3 )
@@ -91,6 +98,9 @@ public nativeRegisterProgramEvent( plugin, argc )
 	return ArraySize( cbs ) - 1;
 }
 
+/**
+ * Drawing util
+ */
 public bool:nativeCanvasGetPixels( plugin, argc )
 {
 	static iColors[CANVAS_MAX_PIXELS];
@@ -159,6 +169,41 @@ public bool:nativeCanvasSetPixels( plugin, argc )
 	return true;
 }
 
+/**
+ * Game util
+ */
+public bool:nativeCanvasLockUserCamera( plugin, argc )
+{
+	if ( argc < 2 )
+	{
+		log_error( AMX_ERR_PARAMS, "canvas_lock_user_camera expects 2 arguments, %d given", argc );
+		return false;
+	}
+	
+	new id = get_param( 1 );
+	new canvas = get_param( 2 );
+	
+	return setCameraLock( id, canvas );
+}
+
+public bool:nativeCanvasUnlockUserCamera( plugin, argc )
+{
+	if ( argc < 1 )
+	{
+		log_error( AMX_ERR_PARAMS, "canvas_unlock_user_camera expects 1 arguments, %d given", argc );
+		return false;
+	}
+	
+	new id = get_param( 1 );
+	
+	return releaseCameraLock( id );
+}
+
+
+
+/**
+ * Getters/setters
+ */
 public nativeCanvasGetWidth( plugin, argc )
 {
 	if ( argc < 1 )

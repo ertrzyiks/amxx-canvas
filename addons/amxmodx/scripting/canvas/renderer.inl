@@ -188,7 +188,7 @@ createCanvas ( const Float:vfOrigin[3], const Float:vfVec[3], width = 28, height
 
 createPixel( const Float: fOrigin[3], Float:fAngle[3], pixelSize )
 {	
-	new ent = engfunc( EngFunc_CreateNamedEntity, engfunc(EngFunc_AllocString, "info_target") );
+	new ent = engfunc( EngFunc_CreateNamedEntity, info_target );
 	set_pev( ent, pev_origin, fOrigin );
 	set_pev( ent, pev_classname, "pixel" );
 	set_pev( ent, pev_movetype, MOVETYPE_NONE );

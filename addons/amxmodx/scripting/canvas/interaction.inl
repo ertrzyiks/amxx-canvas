@@ -6,7 +6,7 @@
 #define DEFAULT_DISTANCE 200.0
 #define DEFAULT_ANGLE 75.0
 
-new giInteractionCanvas[32] = { -1, ... };
+new giInteractionCanvas[33] = { -1, ... };
 
 
 checkForInteraction( canvas )

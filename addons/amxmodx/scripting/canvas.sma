@@ -44,18 +44,23 @@ new Array:gPrograms;
 new Array:gProgramForceSizes;
 new Array:gProgramEvents;
 
+new info_target;
+
 #include "canvas/menus.inl"
 #include "canvas/renderer.inl"
 #include "canvas/interaction.inl"
+#include "canvas/camera_lock.inl"
 #include "canvas/natives.inl"
+
 
 public plugin_init ()
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
 	register_clcmd( "amx_canvas", "cmdCanvas", ADMIN_CFG );
-	
+
 	register_forward( FM_StartFrame, "fwStartFrame", 1 );
+	register_forward( FM_Think, "fwThinkCamera" );
 	
 	giMaxPlayers = get_maxplayers();
 	
@@ -63,18 +68,20 @@ public plugin_init ()
 	gProgramForceSizes = ArrayCreate( 2 );
 	gProgramEvents = ArrayCreate();
 	
+	createProgram( "Default", "handleDefaultProgram" );
+}
+	
+public plugin_precache ()
+{
+	precache_model( gszPixelModel );
+	
+	info_target = engfunc( EngFunc_AllocString, "info_target" );
+	
 	createCanvasMenu();
 	createCanvasDetailsMenu();
 	createProgramMenu();
 	createSizeMenu();
 	createScaleMenu();
-	
-	createProgram( "Default", "handleDefaultProgram" );
-}
-
-public plugin_precache ()
-{
-	precache_model( gszPixelModel );
 }
 
 public cmdCanvas ( id, level, cid )
