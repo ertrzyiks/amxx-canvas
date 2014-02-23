@@ -6,8 +6,6 @@
 #define DEFAULT_DISTANCE 200.0
 #define DEFAULT_ANGLE 75.0
 
-new giInteractionCanvas[33] = { -1, ... };
-
 
 checkForInteraction( canvas )
 {
@@ -79,6 +77,38 @@ bool:isInInteractionArea( id, canvas, Float:fMaxDistance = DEFAULT_DISTANCE, Flo
 	
 	new Float:fAngle = xs_vec_angle( vfAngle, vfCanvasOrigin );
 	return fAngle <= fMaxAngle;
+}
+
+
+/**
+ * 
+ */
+public fwCmdStart( id, uc_handle )
+{
+	if ( hasCameraLock( id ) )
+	{
+		if ( is_user_alive( id ) )
+		{
+			set_uc( uc_handle, UC_Buttons, get_uc( uc_handle, UC_Buttons ) & ~(IN_ATTACK|IN_ATTACK2) );
+			set_pev( id, pev_flags, pev(id, pev_flags) | FL_FROZEN );
+		}
+		else
+		{
+			releaseCameraLock( id );
+		}
+		return FMRES_HANDLED;
+	}
+	return FMRES_IGNORED;
+}
+
+onKeyDown( id, key )
+{
+	
+}
+
+onKeyUp( id, key )
+{
+	
 }
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1045\\ f0\\ fs16 \n\\ par }

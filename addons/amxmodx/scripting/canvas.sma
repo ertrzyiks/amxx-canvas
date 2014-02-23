@@ -46,10 +46,13 @@ new Array:gProgramEvents;
 
 new info_target;
 
+
+new giInteractionCanvas[33] = { -1, ... };
+
 #include "canvas/menus.inl"
 #include "canvas/renderer.inl"
-#include "canvas/interaction.inl"
 #include "canvas/camera_lock.inl"
+#include "canvas/interaction.inl"
 #include "canvas/natives.inl"
 
 
@@ -61,6 +64,7 @@ public plugin_init ()
 
 	register_forward( FM_StartFrame, "fwStartFrame", 1 );
 	register_forward( FM_Think, "fwThinkCamera" );
+	register_forward( FM_CmdStart, "fwCmdStart" );
 	
 	giMaxPlayers = get_maxplayers();
 	

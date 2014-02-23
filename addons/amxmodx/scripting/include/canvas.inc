@@ -37,10 +37,10 @@
  * Extracts channel values from compressed color.
  * Returns values by reference.
  * 
- * @param color {Int} Compressed color
- * @param &r {Int} Value of red channel
- * @param &g {Int} Value of green channel
- * @param &b {Int} Value of blue channel
+ * @param color Compressed color
+ * @param &r Value of red channel
+ * @param &g Value of green channel
+ * @param &b Value of blue channel
  */
 stock unzipColor( color, &r, &g, &b )
 {
@@ -52,10 +52,10 @@ stock unzipColor( color, &r, &g, &b )
 /**
  * Compress color channels into 4 byte length variable
  *
- * @param r {Int} Value of red channel
- * @param g {Int} Value of green channel
- * @param b {Int} Value of blue channel
- * @return {Int} Compressed color
+ * @param r Value of red channel
+ * @param g Value of green channel
+ * @param b Value of blue channel
+ * @return Compressed color
  */
 stock zipColor( r, g, b )
 {
@@ -75,9 +75,9 @@ stock zipColor( r, g, b )
 /**
  * Takes compressed color and return value with modified red channel 
  *
- * @param color {Int} Compressed color
- * @param newR {Int} New value of red channel
- * @return {Int} Compressed color with modified red channel
+ * @param color Compressed color
+ * @param newR New value of red channel
+ * @return Compressed color with modified red channel
  */
 stock setR( color, newR )
 {
@@ -89,9 +89,9 @@ stock setR( color, newR )
 /**
  * Takes compressed color and return value with modified green channel 
  *
- * @param color {Int} Compressed color
- * @param newG {Int} New value of green channel
- * @return {Int} Compressed color with modified green channel
+ * @param color Compressed color
+ * @param newG New value of green channel
+ * @return Compressed color with modified green channel
  */
 stock setG( color, newG )
 {
@@ -103,9 +103,9 @@ stock setG( color, newG )
 /**
  * Takes compressed color and return value with modified blue channel 
  *
- * @param color {Int} Compressed color
- * @param newB {Int} New value of blue channel
- * @return {Int} Compressed color with modified blue channel
+ * @param color Compressed color
+ * @param newB New value of blue channel
+ * @return Compressed color with modified blue channel
  */
 stock setB( color, newB )
 {
@@ -118,10 +118,10 @@ stock setB( color, newB )
 /**
  * Add new initialization handler. Map iteration number into pixel index to determine appearing order.
  *
- * @param szName {String} Name of initialize
- * @param szCallacbk {String} Name of public function to call
- * @param iTempo {Int} Count of pixels per tick
- * @param {Int} Initializer id
+ * @param szName String with name of initialize
+ * @param szCallacbk String with name of public function to call
+ * @param iTempo Count of pixels per tick
+ * @param Initializer id
  */
 native register_canvas_initializer( const szName[], const szCallback[], iTempo = 1 );
 
@@ -130,11 +130,11 @@ native register_canvas_initializer( const szName[], const szCallback[], iTempo =
  * Add new program. Callback is function called on each frame for each canvas which use this program.
  * If forceWidth and forceHeight are greater than 0, program will force given size before render.
  * 
- * @param szName {String} Name of program
- * @param szCallback {String} Name of public function to call on each frame
- * @param [forceWidth=0] {Int}
- * @param [forceHeight=0] {Int}
- * @return {Int} Program id.
+ * @param szName String with name of program
+ * @param szCallback String with name of public function to call on each frame
+ * @param [forceWidth]
+ * @param [forceHeight]
+ * @return Program id
  */
 native register_canvas_program( const szName[], const szCallback[], forceWidth = 0, forceHeight = 0 );
 
@@ -151,9 +151,9 @@ native register_canvas_program( const szName[], const szCallback[], forceWidth =
  * "interaction:leave" - when player leaves interaction area
  *	data[0] - player id
  *
- * @param program {Int} Program id
- * @param szEvent {String} Name of event.
- * @param szCallback {String} Name of public function to call on event
+ * @param program Program id
+ * @param szEvent String with name of event.
+ * @param szCallback String with name of public function to call on event
  */
 native register_program_event( program, const szEvent[], const szCallback[] );
 
@@ -176,59 +176,59 @@ native canvas_unlock_user_camera( id );
 /**
  * Get colors of all pixels of canvas.
  * 
- * @param canvas {Int} Canvas id
- * @param pixels {Int[]} Array to be filled by colors
- * @param size {Int} Length of array, for safe copying
- * @return {Bool} True on success, false otherwise
+ * @param canvas  Canvas id
+ * @param pixels Array to be filled by colors
+ * @param size Length of array, for safe copying
+ * @return True on success, false otherwise
  */
 native bool:canvas_get_pixels( canvas, pixels[], size = CANVAS_MAX_PIXELS );
 
 /**
  * Set colors of all pixesl of canvas
  *
- * @param canvas {Int} Canvas id
- * @param pixels {Int[]} Array of colors to apply into canvas
- * @param size {Int} Length of array, for safe copying
- * @return {Bool} True on success, false otherwise
+ * @param canvas Canvas id
+ * @param pixels Array of colors to apply into canvas
+ * @param size Length of array, for safe copying
+ * @return True on success, false otherwise
  */
 native bool:canvas_set_pixels( canvas, pixels[], size = CANVAS_MAX_PIXELS );
 
 
 /**
- * @param {Int} canvas Canvas id
- * @param {Int} &width Referenced variable will be filled with canvas width in pixels
- * @param {Int} &height Referenced variable will be filled with canvas height in pixels
+ * @param canvas Canvas id
+ * @param &width Referenced variable will be filled with canvas width in pixels
+ * @param &height Referenced variable will be filled with canvas height in pixels
  */
 native canvas_get_size( canvas, &width, &height );
 
 /**
- * @param {Int} canvas Canvas id
- * @param {Int} width Canvas width in pixels
- * @param {Int} height Canvas height in pixels
+ * @param canvas Canvas id
+ * @param width Canvas width in pixels
+ * @param height Canvas height in pixels
  */
 native canvas_set_size( canvas, width, height );
 
 /**
- * @param {Int} canvas Canvas id
- * @return {Int} Canvas width in pixels
+ * @param canvas Canvas id
+ * @return Canvas width in pixels
  */
 native canvas_get_width( canvas );
 
 /**
- * @param {Int} canvas Canvas id
- * @param {Int} width New width in pixels
+ * @param canvas Canvas id
+ * @param width New width in pixels
  */
 native canvas_set_width( canvas, width );
 
 /**
- * @param {Int} canvas Canvas id
+ * @param canvas Canvas id
  * @return Canvas height in pixels
  */
 native canvas_get_height( canvas );
 
 /**
- * @param {Int} canvas Canvas id
- * @param {Int} height New height in pixels
+ * @param canvas Canvas id
+ * @param height New height in pixels
  */
 native canvas_set_height( canvas, height );
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE

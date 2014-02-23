@@ -62,6 +62,8 @@ onCanvasReady( canvas )
  * Each frame we got creation tick and decide which pixels should be created.
  *
  * Controller of this process is called Canvas Initializer.
+ * 
+ * @param canvas Canvas id
  */
 creatingTick( canvas )
 {
@@ -208,11 +210,11 @@ createPixel( const Float: fOrigin[3], Float:fAngle[3], pixelSize )
 /**
  * 
  *
- * @param szName {String} Program name
- * @param szFunction {String} Callback function called each server frame to draw canvas content
- * @param [forceWidth=0] {Int} 
- * @param [forceHeight=0] {Int} 
- * @param [plugin_id=-1] {Int} Id of plugin to search for function. When -1, look for function it this plugin.
+ * @param szName String with program name
+ * @param szFunction String with name of callback function called each server frame to draw canvas content
+ * @param [forceWidth]
+ * @param [forceHeight]
+ * @param [plugin_id] Id of plugin to search for function. When -1, look for function it this plugin.
  */
 createProgram( const szName[], const szFunction[], forceWidth = 0, forceHeight = 0, plugin_id = -1 )
 {
@@ -245,7 +247,7 @@ createProgram( const szName[], const szFunction[], forceWidth = 0, forceHeight =
 /**
  * Update handler of default program. Render greyscaled noise.
  *
- * @param canvas {Int} Canvas id
+ * @param canvas Canvas id
  */
 handleDefaultProgram( canvas )
 {
@@ -267,11 +269,13 @@ handleDefaultProgram( canvas )
 
 /**
  * Dispatch program event. Currently are events have to take 
- *	callback( canvas)
+ *	callback( canvas, data[], length )
  *
- * @param canvas {Int} Canvas id
- * @param program {Int} Program id
- * @param szEvent {String} Name of event to trigger
+ * @param canvas Canvas id
+ * @param program Program id
+ * @param szEvent String with name of event to trigger
+ * @param [data] Array with extra parameters
+ * @param [length] Length of array with extra parameters
  */
 triggerProgramEvent( canvas, program, const szEvent[], const data[] = {}, length = 0)
 {
@@ -294,8 +298,8 @@ triggerProgramEvent( canvas, program, const szEvent[], const data[] = {}, length
 /**
  * Dispatch quit event for not default programs.
  *
- * @param canvas {Int} Canvas id.
- * @param program {Int} Program id
+ * @param canvas Canvas id.
+ * @param program Program id
  */
 disposeProgram( canvas, program )
 {
@@ -308,8 +312,8 @@ disposeProgram( canvas, program )
 /**
  * Dispatch init event for not default programs.
  * 
- * @param canvas {Int} Canvas id
- * @param program {Int} Program id
+ * @param canvas Canvas id
+ * @param program Program id
  */
 setupProgram( canvas, program )
 {

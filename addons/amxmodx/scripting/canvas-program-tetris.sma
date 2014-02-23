@@ -46,13 +46,22 @@ public plugin_init()
 	register_forward( FM_CmdStart, "fwCmdStart", 1 );
 }
 
+new Float:gfLastUse[33];
+
 public fwCmdStart( id, uc_handle )
 {
 	if ( is_user_alive( id ) )
 	{
-		if ( get_uc( uc_handle, UC_Buttons ) & IN_USE )
+		if (  get_uc( uc_handle, UC_Buttons ) & IN_USE )
 		{
-			onUse( id );
+			new Float:now = get_gametime();
+			new Float:diff = now - gfLastUse[id];
+
+			if ( diff > 1.0 )
+			{
+				gfLastUse[id] = now;
+				onUse( id );
+			}
 		}
 	}
 }
@@ -91,7 +100,13 @@ public onKeyPress( canvas, key )
 
 onUse( id )
 {
-	if ( task_exists( id ) )
+	log_amx("USE");
+	if ( giCanvasPlayers[ id ] )
+	{
+		canvas_unlock_user_camera( id );
+		giCanvasPlayers[ id ] = 0;
+	}
+	else if ( task_exists( id ) )
 	{
 		remove_task( id );
 		canvas_lock_user_camera( id );
