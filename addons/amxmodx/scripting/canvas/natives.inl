@@ -14,6 +14,9 @@ public plugin_natives()
 	register_native( "canvas_get_pixels", "nativeCanvasGetPixels" );
 	register_native( "canvas_set_pixels", "nativeCanvasSetPixels" );
 	
+	register_native( "canvas_get_pixel", "nativeCanvasGetPixel" );
+	register_native( "canvas_set_pixel", "nativeCanvasSetPixel" );
+	
 	register_native( "canvas_get_width", "nativeCanvasGetWidth" );
 	register_native( "canvas_set_width", "nativeCanvasSetWidth" );
 	
@@ -169,34 +172,98 @@ public bool:nativeCanvasSetPixels( plugin, argc )
 	return true;
 }
 
+public nativeCanvasGetPixel( plugin, argc )
+{
+	if ( argc < 3 )
+	{
+		log_error( AMX_ERR_PARAMS, "canvas_get_pixel expects 3 arguments, %d given", argc );
+		return -1;
+	}
+	
+	new canvas = get_param( 1 );
+	new col = get_param( 2 );
+	new row = get_param( 3 );
+	new width = gCanvas[canvas][cols];
+	new height = gCanvas[canvas][rows];
+	new ent = gCanvasPixels[canvas][ row * width + col ];
+	
+	if ( col < 0 || col >= width || row < 0 || row >= height )
+	{
+		return -1;
+	}
+	
+	new iColor[3], Float:fColor[3];
+	pev( ent, pev_rendercolor, fColor );
+	FVecIVec( fColor, iColor );
+	return zipColor( iColor[0], iColor[1], iColor[2] );
+}
+
+public nativeCanvasSetPixel( plugin, argc )
+{
+	if ( argc < 4 )
+	{
+		log_error( AMX_ERR_PARAMS, "canvas_set_pixel expects 4 arguments, %d given", argc );
+		return;
+	}
+	
+	new canvas = get_param( 1 );
+	new col = get_param( 2 );
+	new row = get_param( 3 );
+	new color = get_param( 4 );
+	new width = gCanvas[canvas][cols];
+	new height = gCanvas[canvas][rows];
+	
+	if ( col < 0 || col >= width || row < 0 || row >= height )
+	{
+		return;
+	}
+	
+	new ent = gCanvasPixels[canvas][ row * width + col ];
+	
+	new iColor[3], Float:fColor[3];
+	unzipColor( color, iColor[0], iColor[1], iColor[2] );
+	IVecFVec( iColor, fColor );
+	set_pev( ent, pev_rendercolor, fColor );
+}
+
 /**
  * Game util
  */
-public bool:nativeCanvasLockUserCamera( plugin, argc )
+public nativeCanvasLockUserCamera( plugin, argc )
 {
 	if ( argc < 2 )
 	{
 		log_error( AMX_ERR_PARAMS, "canvas_lock_user_camera expects 2 arguments, %d given", argc );
-		return false;
+		return -1;
 	}
 	
 	new id = get_param( 1 );
 	new canvas = get_param( 2 );
 	
-	return setCameraLock( id, canvas );
+	if ( setCameraLock( id, canvas ) )
+	{
+		return giInteractionCanvas[id];
+	}
+	
+	return -1;
 }
 
-public bool:nativeCanvasUnlockUserCamera( plugin, argc )
+public nativeCanvasUnlockUserCamera( plugin, argc )
 {
 	if ( argc < 1 )
 	{
 		log_error( AMX_ERR_PARAMS, "canvas_unlock_user_camera expects 1 arguments, %d given", argc );
-		return false;
+		return -1;
 	}
 	
 	new id = get_param( 1 );
 	
-	return releaseCameraLock( id );
+	if ( releaseCameraLock( id ) )
+	{
+		return giInteractionCanvas[id];
+	}
+	
+	return -1;
 }
 
 

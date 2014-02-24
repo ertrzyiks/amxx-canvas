@@ -159,8 +159,6 @@ _releaseCameraLock( id )
 	giCameraLocks[ id ] = -1;
 	giInteractionCanvas[ id ] = -1;
 	
-	set_pev( id, pev_flags, pev(id, pev_flags) & ~FL_FROZEN );
-	
 	if ( getLocksCount() == 0 )
 	{
 		unregister_forward( FM_AddToFullPack, ghAddToFullPack );
@@ -292,11 +290,9 @@ public fwThinkCamera( ent )
 
 public fwAddToFullPack( es_handle, e, ENT, HOST, hostflags, player, set )
 {
-	if ( ENT == HOST )
+	if ( ENT == HOST && giCameraLocks[HOST] != -1 )
 	{
-		//set_es( es_handle, ES_RenderMode, kRenderTransAlpha );
-		//set_es( es_handle, ES_RenderAmt, 0.0 );
-		set_es( es_handle, ES_Effects, get_es( es_handle, ES_Effects)|EF_NODRAW );
+		//set_es( es_handle, ES_Effects, get_es( es_handle, ES_Effects)|EF_NODRAW );
 		return FMRES_OVERRIDE;
 	}
 	

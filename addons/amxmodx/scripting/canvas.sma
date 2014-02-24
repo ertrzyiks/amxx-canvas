@@ -97,9 +97,15 @@ public cmdCanvas ( id, level, cid )
 	return PLUGIN_HANDLED;
 }
 
-
 public fwStartFrame()
 {
+	static Float:fTime = 0.0;
+	static Float:fNow, Float:fDelta;
+	fNow = get_gametime();
+	
+	fDelta = fNow - fTime;
+	fTime = fNow;
+	
 	for ( new i = 0; i < giCanvasInitializeIndex; i++ )
 	{
 		new isReady = gCanvas[i][ready];
@@ -110,11 +116,11 @@ public fwStartFrame()
 			
 			if ( cb <= 0)
 			{
-				handleDefaultProgram( i );
+				handleDefaultProgram( i, fDelta );
 			}
 			else
 			{
-				ExecuteForward( cb , ret, i );
+				ExecuteForward( cb , ret, i, fDelta );
 				checkForInteraction( i );
 			}
 		}

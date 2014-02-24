@@ -85,30 +85,84 @@ bool:isInInteractionArea( id, canvas, Float:fMaxDistance = DEFAULT_DISTANCE, Flo
  */
 public fwCmdStart( id, uc_handle )
 {
-	if ( hasCameraLock( id ) )
+	static iDetectKeys[] = {
+		IN_FORWARD,
+		IN_BACK,
+		IN_MOVELEFT,
+		IN_MOVERIGHT,
+		
+		IN_ATTACK,
+		IN_ATTACK2,
+		
+		IN_USE
+	};
+	
+	if ( !hasCameraLock( id ) || gbCameraUnLock[ id ] )
 	{
-		if ( is_user_alive( id ) )
-		{
-			set_uc( uc_handle, UC_Buttons, get_uc( uc_handle, UC_Buttons ) & ~(IN_ATTACK|IN_ATTACK2) );
-			set_pev( id, pev_flags, pev(id, pev_flags) | FL_FROZEN );
-		}
-		else
-		{
-			releaseCameraLock( id );
-		}
+		return FMRES_IGNORED;
+	}
+	
+	if ( !is_user_alive( id ) )
+	{
+		releaseCameraLock( id );
 		return FMRES_HANDLED;
 	}
-	return FMRES_IGNORED;
+	
+	new button = get_uc( uc_handle, UC_Buttons );
+	new oldbutton = pev( id, pev_oldbuttons );
+	for ( new i = 0; i < sizeof( iDetectKeys ); i++ )
+	{
+		new key = iDetectKeys[i];
+		
+		if ( button & key )
+		{
+			if ( (oldbutton & key) == 0 )
+			{
+				onKeyDown( id, key );
+			}
+			
+			onKeyPress( id, key );
+		}
+		else if ( oldbutton & key )
+		{
+			onKeyUp( id, key );
+		}
+	}
+
+	return FMRES_HANDLED;
 }
 
 onKeyDown( id, key )
 {
+	new canvas = giCameraLocks[ id ];
+	new program = gCanvas[ canvas ][ programId ];
 	
+	new data[2];
+	data[0] = id;
+	data[1] = key;
+	triggerProgramEvent( canvas, program, "interaction:keydown", data, sizeof( data ) );
 }
 
 onKeyUp( id, key )
 {
+	new canvas = giCameraLocks[ id ];
+	new program = gCanvas[ canvas ][ programId ];
 	
+	new data[2];
+	data[0] = id;
+	data[1] = key;
+	triggerProgramEvent( canvas, program, "interaction:keyup", data, sizeof( data ) );
+}
+
+onKeyPress( id, key )
+{
+	new canvas = giCameraLocks[ id ];
+	new program = gCanvas[ canvas ][ programId ];
+	
+	new data[2];
+	data[0] = id;
+	data[1] = key;
+	triggerProgramEvent( canvas, program, "interaction:keypress", data, sizeof( data ) );
 }
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1045\\ f0\\ fs16 \n\\ par }

@@ -195,6 +195,27 @@ native bool:canvas_set_pixels( canvas, pixels[], size = CANVAS_MAX_PIXELS );
 
 
 /**
+ * Get color of particular pixel of canvas.
+ * 
+ * @param canvas  Canvas id
+ * @param col Pixel column
+ * @param row Pixel row
+ * @return Zipped color of pixel, -1 if col/row is invalid
+ */
+native canvas_get_pixel( canvas, col, row );
+
+/**
+ * Set color of particular pixel of canvas.
+ *
+ * @param canvas Canvas id
+ * @param col Pixel column
+ * @param row Pixel row
+ * @param color Zipped color of pixel
+ */
+native canvas_set_pixel( canvas, col, row, color );
+
+
+/**
  * @param canvas Canvas id
  * @param &width Referenced variable will be filled with canvas width in pixels
  * @param &height Referenced variable will be filled with canvas height in pixels

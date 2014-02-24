@@ -226,7 +226,7 @@ createProgram( const szName[], const szFunction[], forceWidth = 0, forceHeight =
 	}
 	else
 	{
-		cb = CreateOneForward( plugin_id, szFunction, FP_CELL );
+		cb = CreateOneForward( plugin_id, szFunction, FP_CELL, FP_FLOAT );
 		
 	}
 	
@@ -249,8 +249,10 @@ createProgram( const szName[], const szFunction[], forceWidth = 0, forceHeight =
  *
  * @param canvas Canvas id
  */
-handleDefaultProgram( canvas )
+handleDefaultProgram( canvas, Float:fDelta )
 {
+	#pragma unused fDelta
+	
 	for ( new i = 0; i < CANVAS_MAX_PIXELS; i++ )
 	{
 		new ent = gCanvasPixels[canvas][i];
@@ -277,7 +279,7 @@ handleDefaultProgram( canvas )
  * @param [data] Array with extra parameters
  * @param [length] Length of array with extra parameters
  */
-triggerProgramEvent( canvas, program, const szEvent[], const data[] = {}, length = 0)
+triggerProgramEvent( canvas, program, const szEvent[], const data[] = {}, length = 0 )
 {
 	new Trie:events = ArrayGetCell( gProgramEvents, program );
 	new Array:callbacks;
