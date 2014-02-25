@@ -161,12 +161,19 @@ native register_program_event( program, const szEvent[], const szCallback[] );
 
 
 /**
+ * Lock player camera on given canvas. 
+ * If no canvas specified, lock will be set on canvas from current interaction.
+ * If no interaction, no action will be taken.
  *
+ * @param id Player id
+ * @param canvas Canvas id
  */
 native canvas_lock_user_camera( id, canvas = -1 );
 
 /**
- *
+ * Release lock on player's camera
+ * 
+ * @param id Player id
  */
 native canvas_unlock_user_camera( id );
 

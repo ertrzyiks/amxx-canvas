@@ -29,9 +29,8 @@
 #define VERSION "0.0.1"
 #define AUTHOR "R3X"
 
-const BLOCKDEF_WIDTH = 4;
-const BLOCKDEF_HEIGHT = 4;
-const BLOCKDEF_LEN = BLOCKDEF_WIDTH * BLOCKDEF_HEIGHT;
+const BOARD_WIDTH = 10;
+const BOARD_HEIGHT = 22;
 
 
 enum BlockType{
@@ -39,145 +38,55 @@ enum BlockType{
 	BlockZ,
 	
 	BlockL,
-	BlockOL,
+	BlockJ,
 	
 	BlockI,
 	BlockO,
 	BlockT
 };
 
-new giBlockS[][BLOCKDEF_LEN] = {
+new giBlockDefs[BlockType][4][4] = {
 	{
-		0, 1, 0, 0,
-		0, 1, 1, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 0
+		{ 1, 5, 6, 10 },
+		{ 5, 6, 8, 9 },
+		{ 1, 5, 6, 10 },
+		{ 5, 6, 8, 9 }
 	},
 	{
-		0, 0, 0, 0,
-		0, 1, 1, 0,
-		1, 1, 0, 0,
-		0, 0, 0, 0
-	}
-};
-
-new giBlockZ[][BLOCKDEF_LEN] = {
-	{
-		0, 1, 0, 0,
-		1, 1, 0, 0,
-		1, 0, 0, 0,
-		0, 0, 0, 0
+		{ 1, 4, 5, 8 },
+		{ 4, 5, 9, 10 },
+		{ 1, 4, 5, 8 },
+		{ 4, 5, 9, 10 }
 	},
 	{
-		0, 0, 0, 0,
-		1, 1, 0, 0,
-		0, 1, 1, 0,
-		0, 0, 0, 0
-	}
-};
-
-new giBlockL[][BLOCKDEF_LEN] = {
-	{
-		1, 1, 0, 0,
-		0, 1, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 0, 0
+		{ 0, 1, 5, 9 },
+		{ 2, 4, 5, 6 },
+		{ 1, 5, 9, 10 },
+		{ 4, 5, 6, 8 }
 	},
 	{
-		0, 0, 1, 0,
-		1, 1, 1, 0,
-		0, 0, 0, 0,
-		0, 0, 0, 0
+		{ 1, 2, 5, 9 },
+		{ 4, 5, 6, 10 },
+		{ 1, 5, 8, 9 },
+		{ 0, 4, 5, 6 }
 	},
 	{
-		0, 1, 0, 0,
-		0, 1, 0, 0,
-		0, 1, 1, 0,
-		0, 0, 0, 0
+		{ 1, 5, 9, 13 },
+		{ 4, 5, 6, 7 },
+		{ 1, 5, 9, 13 },
+		{ 4, 5, 6, 7 }
 	},
 	{
-		0, 0, 0, 0,
-		1, 1, 1, 0,
-		1, 0, 0, 0,
-		0, 0, 0, 0
-	}
-};
-
-new giBlockOL[][BLOCKDEF_LEN] = {
-	{
-		0, 1, 1, 0,
-		0, 1, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 0, 0
+		{ 4, 5, 8, 9 },
+		{ 4, 5, 8, 9 },
+		{ 4, 5, 8, 9 },
+		{ 4, 5, 8, 9 }
 	},
 	{
-		0, 0, 0, 0,
-		1, 1, 1, 0,
-		0, 0, 1, 0,
-		0, 0, 0, 0
-	},
-	{
-		0, 1, 0, 0,
-		0, 1, 0, 0,
-		1, 1, 0, 0,
-		0, 0, 0, 0
-	},
-	{
-		1, 0, 0, 0,
-		1, 1, 1, 0,
-		0, 0, 0, 0,
-		0, 0, 0, 0
-	}
-};
-
-new giBlockI[][BLOCKDEF_LEN] = {
-	{
-		0, 1, 0, 0,
-		0, 1, 0, 0,
-		0, 1, 0, 0,
-		0, 1, 0, 0
-	},
-	{
-		0, 0, 0, 0,
-		1, 1, 1, 1,
-		0, 0, 0, 0,
-		0, 0, 0, 0
-	}
-};
-
-new giBlockO[][BLOCKDEF_LEN] = {
-	{
-		0, 0, 0, 0,
-		1, 1, 0, 0,
-		1, 1, 0, 0,
-		0, 0, 0, 0
-	}
-};
-
-new giBlockT[][BLOCKDEF_LEN] = {
-	{
-		0, 0, 0, 0,
-		1, 1, 1, 0,
-		0, 1, 0, 0,
-		0, 0, 0, 0
-	},
-	{
-		0, 1, 0, 0,
-		1, 1, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 0, 0
-	},
-	{
-		0, 1, 0, 0,
-		1, 1, 1, 0,
-		0, 0, 0, 0,
-		0, 0, 0, 0
-	},
-	{
-		0, 1, 0, 0,
-		0, 1, 1, 0,
-		0, 1, 0, 0,
-		0, 0, 0, 0
+		{ 4, 5, 6, 9 },
+		{ 1, 4, 5, 9 },
+		{ 1, 4, 5, 6 },
+		{ 1, 5, 6, 9 }
 	}
 };
 
@@ -192,11 +101,12 @@ public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
 	
-	tetris = register_canvas_program( "Tetris", "onDraw", 10, 22 );
-	
+	tetris = register_canvas_program( "Tetris", "onDraw", BOARD_WIDTH, BOARD_HEIGHT );
+
 	register_program_event( tetris, "interaction:enter", "onEnter" );
 	register_program_event( tetris, "interaction:leave", "onLeave" );
 	register_program_event( tetris, "interaction:keydown", "onKeyDown" );
+	register_program_event( tetris, "interaction:keypress", "onKeyPress" );
 	
 	register_forward( FM_CmdStart, "fwCmdStart", 1 );
 }
@@ -207,7 +117,7 @@ public plugin_cfg()
 	gColors[BlockZ] = zipColor( 12, 200, 12 );
 	
 	gColors[BlockL] = zipColor( 200, 80, 80 );
-	gColors[BlockOL] = zipColor( 200, 12, 12 );
+	gColors[BlockJ] = zipColor( 200, 12, 12 );
 	
 	gColors[BlockI] = zipColor( 255, 0, 0);
 	gColors[BlockO] = zipColor( 12, 12, 200 );
@@ -287,6 +197,8 @@ onUse( id )
 		remove_task( id );
 		new canvas = canvas_lock_user_camera( id );
 		giCanvasPlayers[ canvas ] = id;
+		
+		initGame();
 	}
 }
 
@@ -299,126 +211,300 @@ public taskShowMessage( id )
 
 //GAMEPLAY
 new Float:gfPreGameTime = 0.0;
-new giBrickPos[2] = { 5, -2 };
-new BlockType:gCurrentType = BlockS;
+new Float:gfPreGameRotTime = 0.0;
+new giPreGameRotation = 0;
+new giPreBrickPos[2] = { 3, -2 };
+new BlockType:gPreCurrentType = BlockS;
 
 renderPreGame( canvas, Float:delta )
 {
 	gfPreGameTime += delta;
-	
-	new width, height;
-	canvas_get_size( canvas, width, height );
+	gfPreGameRotTime += delta;
 	
 	if ( gfPreGameTime > 0.3 )
 	{
 		gfPreGameTime -= 0.3;
 		
-		giBrickPos[1]++;
+		giPreBrickPos[1]++;
 		
-		if ( giBrickPos[1] > height )
+		if ( giPreBrickPos[1] > BOARD_HEIGHT )
 		{
-			giBrickPos[1] = -1;
-			gCurrentType = BlockType:random( _:BlockType );
+			giPreBrickPos[1] = -1;
+			gPreCurrentType = BlockType:random( _:BlockType );
+			gfPreGameRotTime = 0.0;
 		}
 	}
 	
-	for ( new i = 0; i < width ; i++ )
+	if ( gfPreGameRotTime > 1.0 )
+	{
+		gfPreGameRotTime -= 1.0;
+		giPreGameRotation = (giPreGameRotation + 1) % 4;
+	}
+	
+	for ( new i = 0; i < BOARD_WIDTH ; i++ )
 	{		
-		for ( new j = 0; j < height; j++ )
+		for ( new j = 0; j < BOARD_HEIGHT; j++ )
 		{
 			canvas_set_pixel( canvas, i, j, zipColor( 70, 70, 255  - j * 7) );
 		}
 	}
 	
 
-	drawBlock( canvas, giBrickPos[0], giBrickPos[1], gCurrentType );
+	drawBlock( canvas, giPreBrickPos[0], giPreBrickPos[1], gPreCurrentType, giPreGameRotation );
 }
 
 drawBlock( canvas, x, y, BlockType:type, rotation = 0 )
 {
-	new block[BLOCKDEF_LEN];
-	block = getBlockArray( type, rotation );
-	
-	new refx = 2, refy = 2;
-	
-	for( new i = 0; i < sizeof(block); i++ )
+	for( new i = 0; i <4; i++ )
 	{
-		new col = i % BLOCKDEF_WIDTH - refx;
-		new row = i / BLOCKDEF_WIDTH - refy;
-		
-		if ( block[i] )
-		{
-			canvas_set_pixel( canvas, x + col, y + row, gColors[type] );
-		}
+		new pos = giBlockDefs[type][ rotation % 4 ][i];
+		new col = pos % 4;
+		new row = pos / 4;
+	
+		canvas_set_pixel( canvas, x + col, y + row, gColors[type] );
 	}
 }
 
-getBlockArray( BlockType:type, rotation )
-{
-	switch( type )
-	{
-		case BlockS: {
-			return giBlockS[ rotation % sizeof(giBlockS) ];
-		}
-		
-		case BlockZ: {
-			return giBlockZ[ rotation % sizeof(giBlockZ) ];
-		}
-		
-		case BlockL: {
-			return giBlockL[ rotation % sizeof(giBlockL) ];
-		}
-		
-		case BlockOL: {
-			return giBlockOL[ rotation % sizeof(giBlockOL) ];
-		}
-		
-		case BlockI: {
-			return giBlockI[ rotation % sizeof(giBlockI) ];
-		}
-		
-		case BlockO: {
-			return giBlockO[ rotation % sizeof(giBlockO) ];
-		}
-		
-		case BlockT: {
-			return giBlockT[ rotation % sizeof(giBlockT) ];
-		}
-		
-		default:
-		{
-			log_amx( "Invalid block type %d given", type );
-		}
-	}
-	
-	return giBlockS[ rotation % sizeof(giBlockS) ];
-}
+
+
+new Float:gfGameTime = 0.0;
+new giGameRotation = 0;
+new giBrickPos[2] = { 3, -2 };
+new giBoard[BOARD_WIDTH][BOARD_HEIGHT];
+new BlockType:gCurrentType = BlockS;
 
 renderGame( canvas, Float:delta )
 {
-	gfPreGameTime += delta;
+	gfGameTime += delta;
 	
-	new width, height;
-	canvas_get_size( canvas, width, height );
-	
-	if ( gfPreGameTime > 0.5 )
+	if ( gfGameTime > 0.5 )
 	{
-		gfPreGameTime -= 0.5;
+		gfGameTime -= 0.5;
 		
-		giBrickPos[1]++;
-		
-		if ( giBrickPos[1] > height )
+		if ( !moveDown() )
 		{
-			giBrickPos[1] = -1;
+			leaveBlock();
+			sendNewBlock();
 		}
 	}
 	
-	for ( new i = 0; i < width ; i++ )
+	for ( new i = 0; i < BOARD_WIDTH ; i++ )
 	{		
-		for ( new j = 0; j < height; j++ )
+		for ( new j = 0; j < BOARD_HEIGHT; j++ )
 		{
-			canvas_set_pixel( canvas, i, j, zipColor( 255  - j * 7, 70, 70 ) );
+			new piece = giBoard[i][j], color;
+			if ( piece == -1 )
+			{
+				color = zipColor( 255  - j * 2, 255  - j * 2, 255  - j * 2 );
+			}
+			else
+			{
+				color = gColors[ BlockType:piece ];
+			}
+			
+			canvas_set_pixel( canvas, i, j, color );
+		}
+	}
+	
+	drawBlock( canvas, giBrickPos[0], giBrickPos[1], gCurrentType, giGameRotation );
+}
+
+initGame()
+{
+	gfGameTime = -1.0;
+	
+	clearBoard();
+	sendNewBlock();
+	
+	giBrickPos[0] = 3;
+	giBrickPos[1] = -3;
+}
+
+clearBoard()
+{
+	for ( new i = 0; i < BOARD_WIDTH ; i++ )
+	{		
+		for ( new j = 0; j < BOARD_HEIGHT; j++ )
+		{
+			giBoard[i][j] = -1;
 		}
 	}
 }
+
+leaveBlock()
+{
+	new x = giBrickPos[0];
+	new y = giBrickPos[1];
+	
+	for( new i = 0; i <4; i++ )
+	{
+		new pos = giBlockDefs[gCurrentType][ giGameRotation % 4 ][i];
+		new col = x + pos % 4;
+		new row = y + pos / 4;
+		
+		if ( col < 0 || col >= BOARD_WIDTH || row < 0 || row >= BOARD_HEIGHT )
+		{
+			onGameOver();
+			return;
+		}
+		
+		giBoard[col][row] = _:gCurrentType;
+	}
+}
+
+sendNewBlock()
+{
+	giBrickPos[0] = 3;
+	giBrickPos[1] = -2;
+	gCurrentType = BlockType:random( _:BlockType );
+}
+
+onGameOver()
+{
+	for ( new i = 0; i < CANVAS_MAX_INSTANCES; i++ )
+	{
+		new id = giCanvasPlayers[ i ];
+		giCanvasPlayers[ i ] = 0;
+		
+		if ( is_user_alive(id) )
+		{
+			canvas_unlock_user_camera( id );
+		}
+	}
+}
+
+new Float:gfLastHorizontalPress = 0.0;
+new Float:gfLastVerticalPress = 0.0;
+new Float:gfLastRotationPress = 0.0;
+public onKeyPress( canvas, const data[], length )
+{
+	#pragma unused canvas
+	new key = data[1];
+	
+	new Float:fNow = get_gametime();
+	
+
+	if ( key == IN_MOVELEFT && canPress( fNow, gfLastHorizontalPress ) )
+	{
+		if ( moveLeft() )
+		{
+			gfLastHorizontalPress = fNow;
+		}
+	}
+		
+	else if ( key == IN_MOVERIGHT && canPress( fNow, gfLastHorizontalPress ) )
+	{
+		if ( moveRight() )
+		{
+			gfLastHorizontalPress = fNow;
+		}
+	}
+	
+
+	if ( key == IN_FORWARD && canPress( fNow, gfLastRotationPress, 0.2 ) )
+	{
+		if ( rotate( ) )
+		{
+			gfLastRotationPress = fNow;
+		}
+	}
+
+	
+	if ( key == IN_BACK && canPress( fNow, gfLastVerticalPress, 0.02 ) )
+	{
+		if ( moveDown() )
+		{
+			gfLastVerticalPress = fNow;
+		}
+	}
+}
+
+bool:canPress( Float:fNow, Float:fLastUse, Float:fBound = 0.05 ) 
+{
+	return ( fNow - fLastUse ) > fBound;
+}
+	
+
+bool:moveLeft( )
+{
+	giBrickPos[0]--;
+	if ( !isValidMove() )
+	{
+		giBrickPos[0]++;
+		return false;
+	}
+	
+	return true;
+}
+
+bool:moveRight()
+{
+	giBrickPos[0]++;
+			
+	if ( !isValidMove() )
+	{
+		giBrickPos[0]--;
+		return false;
+	}
+	
+	return true;
+}
+
+bool:rotate()
+{
+	giGameRotation++;
+			
+	if ( !isValidMove() )
+	{
+		giGameRotation--;
+		return false;
+	}
+	
+	return true;
+}
+
+bool:moveDown()
+{
+	giBrickPos[1]++;
+			
+	if ( !isValidMove() )
+	{
+		giBrickPos[1]--;
+		return false;
+	}
+	
+	return true;
+}
+
+
+bool:isValidMove()
+{
+	new x = giBrickPos[0];
+	new y = giBrickPos[1];
+	
+	for( new i = 0; i <4; i++ )
+	{
+		new pos = giBlockDefs[gCurrentType][ giGameRotation % 4 ][i];
+		new col = x + pos % 4;
+		new row = y + pos / 4;
+	
+		if ( col < 0 || col >= BOARD_WIDTH )
+		{
+			return false;
+		}
+		
+		if ( row >= BOARD_HEIGHT )
+		{
+			return false;
+		}
+		
+		if ( row >= 0 && giBoard[col][row] != -1 )
+		{
+			return false;
+		}
+	}
+	
+	return true;
+}
+
 
