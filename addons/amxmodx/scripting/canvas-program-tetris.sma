@@ -603,6 +603,11 @@ bool:moveDown()
 
 bool:isValidMove()
 {
+	if ( gfCollapseTime > 0 )
+	{
+		return false;
+	}
+	
 	new x = giBrickPos[0];
 	new y = giBrickPos[1];
 	
