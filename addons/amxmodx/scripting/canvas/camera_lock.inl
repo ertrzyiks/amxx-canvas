@@ -86,7 +86,7 @@ bool:setCameraLock( id, canvas = -1 )
 	vfDirection[1] = -vfDirection[1];
 	vfDirection[2] = -vfDirection[2];
 	
-	xs_vec_mul_scalar( vfDirection, 150.0, vfDirection );
+	xs_vec_mul_scalar( vfDirection, 170.0, vfDirection );
 	xs_vec_add( vfEndOrigin, vfDirection, vfEndOrigin );
 	
 	
