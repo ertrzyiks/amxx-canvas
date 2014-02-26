@@ -449,11 +449,19 @@ checkForSpeedUp( Float:delta )
 	}
 }
 
+getOffsetByBlock( BlockType:type )
+{
+	new biggestBlockId = giBlockDefs[type][0][3];
+	
+	return 3 - biggestBlockId / 4;
+}
+
 sendNewBlock()
 {
-	giBrickPos[0] = 3;
-	giBrickPos[1] = -4;
 	gCurrentType = BlockType:random( _:BlockType );
+	
+	giBrickPos[0] = 3;
+	giBrickPos[1] = getOffsetByBlock( gCurrentType ) - 4;
 }
 
 drawBlock( canvas, x, y, BlockType:type, rotation = 0 )
