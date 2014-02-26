@@ -253,33 +253,30 @@ renderPreGame( canvas, Float:delta )
 	drawBlock( canvas, giPreBrickPos[0], giPreBrickPos[1], gPreCurrentType, giPreGameRotation );
 }
 
-drawBlock( canvas, x, y, BlockType:type, rotation = 0 )
-{
-	for( new i = 0; i <4; i++ )
-	{
-		new pos = giBlockDefs[type][ rotation % 4 ][i];
-		new col = pos % 4;
-		new row = pos / 4;
-	
-		canvas_set_pixel( canvas, x + col, y + row, gColors[type] );
-	}
-}
-
-
-
 new Float:gfGameTime = 0.0;
 new giGameRotation = 0;
 new giBrickPos[2] = { 3, -2 };
 new giBoard[BOARD_WIDTH][BOARD_HEIGHT];
 new BlockType:gCurrentType = BlockS;
+new Float:gfFallTime = 0.5;
+
+new Float:gfNextSpeedUp = 0.0;
+
+new bool:gbShouldCollapse = false;
+new Float:gfCollapseTime = 0.0;
+
+new gviFullLines[BOARD_HEIGHT];
 
 renderGame( canvas, Float:delta )
 {
+	collapseEmptyLines( delta );
+	checkForSpeedUp( delta );
+	
 	gfGameTime += delta;
 	
-	if ( gfGameTime > 0.5 )
+	if ( gfGameTime > gfFallTime )
 	{
-		gfGameTime -= 0.5;
+		gfGameTime -= gfFallTime;
 		
 		if ( !moveDown() )
 		{
@@ -317,7 +314,6 @@ initGame()
 	sendNewBlock();
 	
 	giBrickPos[0] = 3;
-	giBrickPos[1] = -3;
 }
 
 clearBoard()
@@ -350,13 +346,126 @@ leaveBlock()
 		
 		giBoard[col][row] = _:gCurrentType;
 	}
+	
+	checkFullLines();
+}
+
+checkFullLines()
+{
+	for ( new j = 0; j < BOARD_HEIGHT; j++ )
+	{
+		gviFullLines[j] = 1;
+		for ( new i = 0; i < BOARD_WIDTH; i++ )
+		{
+			if ( giBoard[i][j] == -1 )
+			{
+				gviFullLines[j] = 0;
+			}
+		}
+	}
+	
+	new bool:anyFull = false;
+	
+	for ( new i = 0; i < BOARD_HEIGHT; i++ )
+	{
+		if ( gviFullLines[i] )
+		{
+			removeFullLine( i );
+			anyFull = true;
+		}
+	}
+	
+	
+	if ( anyFull )
+	{
+		gfGameTime -= gfFallTime * 4;
+		gfCollapseTime = 0.1;
+		gbShouldCollapse = true;
+	}
+	
+}
+
+removeFullLine( line )
+{
+	for ( new i = 0; i < BOARD_WIDTH; i++ )
+	{
+		giBoard[i][line] = -1;
+	}
+}
+
+collapseEmptyLines( Float:delta )
+{
+	if ( !gbShouldCollapse )
+	{
+		return;
+	}
+	
+	gfCollapseTime -= delta;
+	
+	if ( gfCollapseTime > 0 )
+	{
+		return;
+	}
+
+	for ( new j = 0; j < BOARD_HEIGHT; j++ )
+	{
+		if ( gviFullLines[j] )
+		{
+			collapseEmptyLine( j );
+		}
+	}
+	
+	gbShouldCollapse = false;
+}
+
+collapseEmptyLine( line )
+{
+	if ( line <= 0)
+	{
+		return;
+	}
+	
+	for ( new i = 0; i < BOARD_WIDTH; i++ )
+	{
+		for ( new j = 0; j < line; j++ )
+		{
+			if ( line - i >= 1 )
+			{
+				giBoard[i][line - j] = giBoard[i][line - j - 1];
+			}
+		}
+	}
+}
+
+checkForSpeedUp( Float:delta )
+{
+	gfNextSpeedUp += delta;
+	
+	if ( gfNextSpeedUp > 12.0 )
+	{
+		gfNextSpeedUp -= 12.0;
+		
+		gfFallTime = floatmax( gfFallTime - 0.02, 0.1 );
+	}
 }
 
 sendNewBlock()
 {
 	giBrickPos[0] = 3;
-	giBrickPos[1] = -2;
+	giBrickPos[1] = -4;
 	gCurrentType = BlockType:random( _:BlockType );
+}
+
+drawBlock( canvas, x, y, BlockType:type, rotation = 0 )
+{
+	for( new i = 0; i <4; i++ )
+	{
+		new pos = giBlockDefs[type][ rotation % 4 ][i];
+		new col = pos % 4;
+		new row = pos / 4;
+	
+		canvas_set_pixel( canvas, x + col, y + row, gColors[type] );
+	}
 }
 
 onGameOver()
@@ -378,7 +487,14 @@ new Float:gfLastVerticalPress = 0.0;
 new Float:gfLastRotationPress = 0.0;
 public onKeyPress( canvas, const data[], length )
 {
-	#pragma unused canvas
+	new id = data[0];
+	
+	if ( giCanvasPlayers[canvas] != id )
+	{
+		return;
+	}
+	
+	
 	new key = data[1];
 	
 	new Float:fNow = get_gametime();
@@ -419,7 +535,7 @@ public onKeyPress( canvas, const data[], length )
 	}
 }
 
-bool:canPress( Float:fNow, Float:fLastUse, Float:fBound = 0.05 ) 
+bool:canPress( Float:fNow, Float:fLastUse, Float:fBound = 0.08 ) 
 {
 	return ( fNow - fLastUse ) > fBound;
 }
