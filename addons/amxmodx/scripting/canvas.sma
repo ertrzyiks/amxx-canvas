@@ -29,11 +29,12 @@
 #include <amxmodx>
 #include <amxmisc>
 #include <fakemeta>
+#include <hamsandwich>
 #include <canvas>
 #include <xs>
 
 #define PLUGIN "Canvas"
-#define VERSION "0.1.0"
+#define VERSION "0.1.1"
 #define AUTHOR "R3X"
 
 new const gszPixelModel[] = "sprites/pixel.spr";
@@ -65,6 +66,7 @@ public plugin_init ()
 	register_forward( FM_StartFrame, "fwStartFrame", 1 );
 	register_forward( FM_Think, "fwThinkCamera" );
 	register_forward( FM_CmdStart, "fwCmdStart" );
+	RegisterHam( Ham_Spawn, "player", "fwPlayerSpawn", 1 );
 	
 	giMaxPlayers = get_maxplayers();
 	

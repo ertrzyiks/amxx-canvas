@@ -145,6 +145,11 @@ bool:releaseCameraLock( id )
 
 _releaseCameraLock( id )
 {
+	if ( giCameraLocks[ id ] == -1 )
+	{
+		return;
+	}
+	
 	if ( is_user_alive( id ) )
 	{
 		engfunc( EngFunc_SetView, id, id );
@@ -155,6 +160,7 @@ _releaseCameraLock( id )
 		set_pev( giCameraEnt[id], pev_flags, pev( giCameraEnt[id], pev_flags) | FL_KILLME );
 		giCameraEnt[id] = 0;
 	}
+	new canvas = giCameraLocks[ id ];
 	
 	giCameraLocks[ id ] = -1;
 	giInteractionCanvas[ id ] = -1;
@@ -163,6 +169,10 @@ _releaseCameraLock( id )
 	{
 		unregister_forward( FM_AddToFullPack, ghAddToFullPack );
 	}
+	
+	new data[1];
+	data[0] = id;
+	triggerProgramEvent( canvas, gCanvas[ canvas ][ programId ], "interaction:quit", data, 1);
 }
 
 tweenCamera( 
@@ -256,7 +266,7 @@ public fwThinkCamera( ent )
 	
 	if( !is_user_alive( id ) )
 	{
-		releaseCameraLock( id );
+		_releaseCameraLock( id );
 		return FMRES_IGNORED;
 	}
 	    
@@ -292,11 +302,19 @@ public fwAddToFullPack( es_handle, e, ENT, HOST, hostflags, player, set )
 {
 	if ( ENT == HOST && giCameraLocks[HOST] != -1 )
 	{
-		//set_es( es_handle, ES_Effects, get_es( es_handle, ES_Effects)|EF_NODRAW );
+		set_es( es_handle, ES_Effects, get_es( es_handle, ES_Effects)|EF_NODRAW );
 		return FMRES_OVERRIDE;
 	}
 	
 	return FMRES_IGNORED;
+}
+
+public fwPlayerSpawn( id )
+{
+	if ( giCameraLocks[id] != -1 )
+	{
+		_releaseCameraLock( id );
+	}
 }
 
 /**

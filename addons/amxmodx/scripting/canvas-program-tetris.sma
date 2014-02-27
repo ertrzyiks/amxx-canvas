@@ -107,6 +107,7 @@ public plugin_init()
 	register_program_event( tetris, "interaction:leave", "onLeave" );
 	register_program_event( tetris, "interaction:keydown", "onKeyDown" );
 	register_program_event( tetris, "interaction:keypress", "onKeyPress" );
+	register_program_event( tetris, "interaction:quit", "onQuit" );
 	
 	register_forward( FM_CmdStart, "fwCmdStart", 1 );
 }
@@ -176,6 +177,12 @@ public onLeave( canvas, data[], length )
 	{
 		remove_task( id );
 	}
+}
+
+public onQuit( canvas )
+{
+	giCanvasPlayers[ canvas ] = 0;
+	
 }
 
 public onKeyDown( canvas, data[], length )

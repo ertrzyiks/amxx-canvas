@@ -131,7 +131,8 @@ native register_canvas_initializer( const szName[], const szCallback[], iTempo =
  * If forceWidth and forceHeight are greater than 0, program will force given size before render.
  * 
  * @param szName String with name of program
- * @param szCallback String with name of public function to call on each frame
+ * @param szCallback String with name of public function to call on each frame  
+ *	callback( canvas, Float:detla )
  * @param [forceWidth]
  * @param [forceHeight]
  * @return Program id
@@ -149,6 +150,8 @@ native register_canvas_program( const szName[], const szCallback[], forceWidth =
  * "interaction:enter" - when player enters into interaction area, 
  *	data[0]  - player id
  * "interaction:leave" - when player leaves interaction area
+ *	data[0] - player id
+ * "interaction:quit" - when player lost lock ( like dead, spawn )
  *	data[0] - player id
  *
  * @param program Program id
