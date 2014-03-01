@@ -5,7 +5,6 @@
 #include <xs>
 
 new Float:gfViewTransition = 1.0;
-new giCameraLocks[33] = { -1, ... };
 new bool:gbCameraUnLock[33];
 new giCameraEnt[33];
 new Float:gfStartOrigin[33][3];
@@ -48,11 +47,7 @@ bool:setCameraLock( id, canvas = -1 )
 	}
 	
 	
-	if ( giCameraLocks[ id ] == canvas )
-	{
-		return false;
-	}
-	
+		
 	if ( getLocksCount() == 0 )
 	{
 		
@@ -61,15 +56,24 @@ bool:setCameraLock( id, canvas = -1 )
 	
 	giCameraLocks[ id ] = canvas;
 	
+	
 	new Float:vfViewOffset[3];
 	new Float:vfOrigin[3], Float:vfAngle[3];
 	new Float:vfEndOrigin[3], Float:vfEndAngle[3];
-	pev( id, pev_view_ofs, vfViewOffset);
-	pev( id, pev_origin, vfOrigin );
-	xs_vec_add( vfOrigin, vfViewOffset, vfOrigin );
-	
-	pev( id, pev_v_angle, vfAngle );
 
+	if ( giCameraLocks[ id ] == -1 || !pev_valid( giCameraEnt[ id ] ) )
+	{
+		pev( id, pev_view_ofs, vfViewOffset);
+		pev( id, pev_origin, vfOrigin );
+		xs_vec_add( vfOrigin, vfViewOffset, vfOrigin );
+		
+		pev( id, pev_v_angle, vfAngle );
+	}
+	else
+	{
+		pev( giCameraEnt[ id ], pev_origin, vfOrigin );
+		pev( giCameraEnt[ id ], pev_angles, vfAngle );
+	}
 	
 	//Get final origin
 	new Float:vfDirection[3];
@@ -86,7 +90,9 @@ bool:setCameraLock( id, canvas = -1 )
 	vfDirection[1] = -vfDirection[1];
 	vfDirection[2] = -vfDirection[2];
 	
-	xs_vec_mul_scalar( vfDirection, 170.0, vfDirection );
+	new canvasScale= getScale( canvas );
+	
+	xs_vec_mul_scalar( vfDirection, 22.0 * float(canvasScale), vfDirection );
 	xs_vec_add( vfEndOrigin, vfDirection, vfEndOrigin );
 	
 	

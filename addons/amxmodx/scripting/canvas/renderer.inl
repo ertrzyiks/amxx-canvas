@@ -396,6 +396,14 @@ setScale( canvas, newScale )
 {
 	gCanvas[canvas][scale] = newScale;
 	setSize( canvas, gCanvas[canvas][cols], gCanvas[canvas][rows], true );
+	
+	for ( new id = 1; id < 33; id++ )
+	{
+		if ( giCameraLocks[id] == canvas )
+		{
+			setCameraLock( id, canvas );
+		}
+	}
 }
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1045\\ f0\\ fs16 \n\\ par }

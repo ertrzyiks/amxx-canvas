@@ -34,7 +34,7 @@
 #include <xs>
 
 #define PLUGIN "Canvas"
-#define VERSION "0.1.1"
+#define VERSION "0.1.2"
 #define AUTHOR "R3X"
 
 new const gszPixelModel[] = "sprites/pixel.spr";
@@ -47,7 +47,7 @@ new Array:gProgramEvents;
 
 new info_target;
 
-
+new giCameraLocks[33] = { -1, ... };
 new giInteractionCanvas[33] = { -1, ... };
 
 #include "canvas/menus.inl"
