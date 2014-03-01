@@ -34,7 +34,7 @@
 #include <xs>
 
 #define PLUGIN "Canvas"
-#define VERSION "0.1.2"
+#define VERSION "0.1.3"
 #define AUTHOR "R3X"
 
 new const gszPixelModel[] = "sprites/pixel.spr";
@@ -69,6 +69,7 @@ public plugin_init ()
 	RegisterHam( Ham_Spawn, "player", "fwPlayerSpawn", 1 );
 	
 	giMaxPlayers = get_maxplayers();
+	
 	
 	gPrograms = ArrayCreate();
 	gProgramForceSizes = ArrayCreate( 2 );

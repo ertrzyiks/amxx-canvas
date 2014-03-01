@@ -56,7 +56,6 @@ bool:setCameraLock( id, canvas = -1 )
 	
 	giCameraLocks[ id ] = canvas;
 	
-	
 	new Float:vfViewOffset[3];
 	new Float:vfOrigin[3], Float:vfAngle[3];
 	new Float:vfEndOrigin[3], Float:vfEndAngle[3];
@@ -158,6 +157,7 @@ _releaseCameraLock( id )
 	
 	if ( is_user_alive( id ) )
 	{
+		_screenFade( id );
 		engfunc( EngFunc_SetView, id, id );
 	}
 	
@@ -166,6 +166,7 @@ _releaseCameraLock( id )
 		set_pev( giCameraEnt[id], pev_flags, pev( giCameraEnt[id], pev_flags) | FL_KILLME );
 		giCameraEnt[id] = 0;
 	}
+	
 	new canvas = giCameraLocks[ id ];
 	
 	giCameraLocks[ id ] = -1;
@@ -181,10 +182,30 @@ _releaseCameraLock( id )
 	triggerProgramEvent( canvas, gCanvas[ canvas ][ programId ], "interaction:quit", data, 1);
 }
 
+_screenFade( id )
+{
+	static gmsgScreenFade;
+	if( !gmsgScreenFade )
+	{
+		gmsgScreenFade = get_user_msgid("ScreenFade");
+	}
+	
+	message_begin(MSG_ONE_UNRELIABLE, gmsgScreenFade, _, id );
+	write_short( 1<<4 );
+	write_short( 1<<8 );
+	write_short( 0 );
+	write_byte (0);
+	write_byte (0);
+	write_byte (0);
+	write_byte ( 255 );
+	message_end();
+}
+
 tweenCamera( 
 	id, 
 	const Float:vfFromOrigin[3], const Float:vfFromAngle[3], 
-	const Float:vfToOrigin[3], const Float:vfToAngle[3] 
+	const Float:vfToOrigin[3], const Float:vfToAngle[3],
+	bool:update = false
 )
 {
 	xs_vec_copy( vfFromOrigin, gfStartOrigin[id] );
@@ -197,7 +218,10 @@ tweenCamera(
 	gfChangeAngle[id][1] = getShortestAngle ( gfChangeAngle[id][1] );
 	gfChangeAngle[id][2] = getShortestAngle ( gfChangeAngle[id][2] );
 	
-	gfStartTime[id] = get_gametime();
+	if ( !update )
+	{
+		gfStartTime[id] = get_gametime();
+	}
 
 	if ( !giCameraEnt[id] )
 	{
@@ -275,25 +299,43 @@ public fwThinkCamera( ent )
 		_releaseCameraLock( id );
 		return FMRES_IGNORED;
 	}
+	
+	//Update end position on camera unlock
+	if ( gbCameraUnLock[ id ] )
+	{
+		new Float:vfViewOffset[3];
+		new Float:vfEndOrigin[3], Float:vfEndAngle[3];
+		pev( id, pev_view_ofs, vfViewOffset);
+		pev( id, pev_origin, vfEndOrigin );
+		xs_vec_add( vfEndOrigin, vfViewOffset, vfEndOrigin );
+		
+		pev( id, pev_v_angle, vfEndAngle );
+		tweenCamera( id, gfStartOrigin[ id ], gfStartAngle[ id ], vfEndOrigin, vfEndAngle, true );
+	}
 	    
 	
 	static Float:timediff;
-	timediff = get_gametime() - gfStartTime[id];
+	timediff = floatmin( get_gametime() - gfStartTime[id], gfViewTransition );
 	
-	static Float:fOrigin[3], Float:fAngle[3];
-	fOrigin[ 0 ] = easing( timediff, gfStartOrigin[ id ][ 0 ], gfChangeOrigin[ id ][ 0 ], gfViewTransition );
-	fOrigin[ 1 ] = easing( timediff, gfStartOrigin[ id ][ 1 ], gfChangeOrigin[ id ][ 1 ], gfViewTransition );
-	fOrigin[ 2 ] = easing( timediff, gfStartOrigin[ id ][ 2 ], gfChangeOrigin[ id ][ 2 ], gfViewTransition );
+	static Float:vfOrigin[3], Float:vfAngle[3];
 	
-	fAngle[ 0 ] = easing( timediff, gfStartAngle[ id ][ 0 ], gfChangeAngle[ id ][ 0 ], gfViewTransition );
-	fAngle[ 1 ] = easing( timediff, gfStartAngle[ id ][ 1 ], gfChangeAngle[ id ][ 1 ], gfViewTransition );
-	fAngle[ 2 ] = easing( timediff, gfStartAngle[ id ][ 2 ], gfChangeAngle[ id ][ 2 ], gfViewTransition );
 	
-	engfunc( EngFunc_SetOrigin, ent, fOrigin );
-	set_pev( ent, pev_angles, fAngle );
-	
-	if ( timediff <= gfViewTransition )
+	if ( timediff < gfViewTransition )
 	{
+		easingArrayByName( 
+			"easingInQuartic", 
+			timediff, gfStartOrigin[ id ], gfChangeOrigin[ id ], gfViewTransition, 
+			vfOrigin 
+		);
+		easingArrayByName( 
+			gbCameraUnLock[ id ] ? "easingInQuartic" : "easingInOutQuartic", 
+			timediff, gfStartAngle[ id ], gfChangeAngle[ id ], gfViewTransition, 
+			vfAngle 
+		);
+	
+		engfunc( EngFunc_SetOrigin, ent, vfOrigin );
+		set_pev( ent, pev_angles, vfAngle );
+		
 		set_pev( ent, pev_nextthink, get_gametime() );
 	}
 	else if ( gbCameraUnLock[ id ] )
@@ -322,6 +364,37 @@ public fwPlayerSpawn( id )
 		_releaseCameraLock( id );
 	}
 }
+stock Float:easingArrayByFuncId( funcId, Float:t, const Float:b[3], const Float:c[3], Float:d, Float:output[3] )
+{
+	output[0] = easingByFuncId( funcId, t, b[0], c[0], d );
+	output[1] = easingByFuncId( funcId, t, b[1], c[1], d );
+	output[2] = easingByFuncId( funcId, t, b[2], c[2], d );
+}
+
+stock Float:easingArrayByName( const szFunction[], Float:t, const Float:b[3], const Float:c[3], Float:d, Float:output[3] )
+{
+	new funcId = get_func_id( szFunction );
+	output[0] = easingByFuncId( funcId, t, b[0], c[0], d );
+	output[1] = easingByFuncId( funcId, t, b[1], c[1], d );
+	output[2] = easingByFuncId( funcId, t, b[2], c[2], d );
+}
+
+stock Float:easingByName( const szFunction[], Float:t, Float:b, Float:c, Float:d )
+{
+	new funcId = get_func_id( szFunction );
+	return easingByFuncId( t, b, c, d );
+}
+
+stock Float:easingByFuncId( funcId, Float:t, Float:b, Float:c, Float:d )
+{
+	callfunc_begin_i( funcId );
+	callfunc_push_float( t );
+	callfunc_push_float( b );
+	callfunc_push_float( c );
+	callfunc_push_float( d );
+	return Float:callfunc_end();
+}
+
 
 /**
  * @param t Current time
@@ -329,12 +402,52 @@ public fwPlayerSpawn( id )
  * @param c Change in value
  * @param d Duration
  */
-Float:easing( Float:t, Float:b, Float:c, Float:d )
+public Float:easingLinear( Float:t, Float:b, Float:c, Float:d )
+{
+	return c*t/d + b;
+}
+
+
+/**
+ * @param t Current time
+ * @param b Start value
+ * @param c Change in value
+ * @param d Duration
+ */
+public Float:easingInQuartic( Float:t, Float:b, Float:c, Float:d )
 {
 	t = floatmin( t, d );
 	t /= d;
 	return c*t*t*t*t + b;
 }
+
+/**
+ * @param t Current time
+ * @param b Start value
+ * @param c Change in value
+ * @param d Duration
+ */
+public Float:easingOutQuartic( Float:t, Float:b, Float:c, Float:d )
+{
+	t /= d;
+	t = t - 1.0;
+	return -c * (t*t*t*t - 1) + b;
+}
+
+/**
+ * @param t Current time
+ * @param b Start value
+ * @param c Change in value
+ * @param d Duration
+ */
+public Float:easingInOutQuartic( Float:t, Float:b, Float:c, Float:d )
+{
+	t /= d/2;
+	if (t < 1) return c/2*t*t*t*t + b;
+	t -= 2;
+	return -c/2 * (t*t*t*t - 2) + b;
+}
+
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1045\\ f0\\ fs16 \n\\ par }
 */
