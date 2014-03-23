@@ -18,5 +18,5 @@ That reduced planned resolution to 28x8 for text experiments.
 ## Installation
 Extract repository package into server root path.
 
-## Screenshots
-![Static canvas](/screenshots/screenshot1.png "Static canvas with random color of pixels")
+## Demo
+See @[youtube](https://www.youtube.com/watch?v=UcpbDoaZ3Qc&list=PLz0GOppD1_jVxQFYLYhKwIexxiDB238rI)
