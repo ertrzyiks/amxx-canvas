@@ -1,6 +1,7 @@
 #include <amxmodx>
 #include <amxmisc>
 #include <fakemeta>
+#include <xs>
 
 enum Canvas
 {
@@ -15,18 +16,27 @@ enum Canvas
 	
 	programId,
 	
+	//Origin
 	originX,
 	originY,
 	originZ,
 	
+	//Origin
+	zerozeroX,
+	zerozeroY,
+	zerozeroZ,
+	
+	//Angle
 	directionX,
 	directionY,
 	directionZ,
 	
+	//Vector
 	rightX,
 	rightY,
 	rightZ,
 	
+	//Vector
 	downX,
 	downY,
 	downZ
@@ -131,8 +141,8 @@ creatingTickByPixel( canvas, pixelIndex )
 	
 	new Float:vfMyOrigin[3], Float:vfMyDown[3], Float:vfMyRight[3];
 	
-	xs_vec_mul_scalar( vfDown, float( row - height / 2) * pixelSize, vfMyDown );
-	xs_vec_mul_scalar( vfRight, float(col - width / 2) * pixelSize, vfMyRight );
+	xs_vec_mul_scalar( vfDown, float( row - height / 2 ) * pixelSize, vfMyDown );
+	xs_vec_mul_scalar( vfRight, float( col - width / 2 ) * pixelSize, vfMyRight );
 	
 	xs_vec_copy( vfBaseOrigin, vfMyOrigin);
 	xs_vec_add( vfMyOrigin, vfMyDown, vfMyOrigin );
@@ -143,7 +153,6 @@ creatingTickByPixel( canvas, pixelIndex )
 
 createCanvas ( const Float:vfOrigin[3], const Float:vfVec[3], width = 28, height = 8, pixelsize = 8 )
 {
-	
 	addCanvasMenuItem( "Canvas #%d", giCanvasIndex + 1 );
 	
 	new Float:vfAngle[3];
@@ -165,6 +174,7 @@ createCanvas ( const Float:vfOrigin[3], const Float:vfVec[3], width = 28, height
 	
 	gCanvas[giCanvasIndex][scale] = pixelsize;
 
+	//Center of canvas
 	gCanvas[giCanvasIndex][originX] = _:vfBaseOrigin[0];
 	gCanvas[giCanvasIndex][originY] = _:vfBaseOrigin[1];
 	gCanvas[giCanvasIndex][originZ] = _:vfBaseOrigin[2];
@@ -173,19 +183,59 @@ createCanvas ( const Float:vfOrigin[3], const Float:vfVec[3], width = 28, height
 	gCanvas[giCanvasIndex][directionY] = _:vfAngle[1];
 	gCanvas[giCanvasIndex][directionZ] = _:vfAngle[2];
 	
+	//right vector
 	gCanvas[giCanvasIndex][rightX] = _:vfRight[0];
 	gCanvas[giCanvasIndex][rightY] = _:vfRight[1];
 	gCanvas[giCanvasIndex][rightZ] = _:vfRight[2];
 	
+	//down vector
 	gCanvas[giCanvasIndex][downX] = _:vfDown[0];
 	gCanvas[giCanvasIndex][downY] = _:vfDown[1];
 	gCanvas[giCanvasIndex][downZ] = _:vfDown[2];
+	
+	updateZeroZeroPoint( giCanvasIndex );
 	
 	gCanvas[giCanvasIndex][programId] = 0; 
 	
 	setSize( giCanvasIndex, width, height );
 	
 	return giCanvasIndex++;
+}
+
+updateZeroZeroPoint( canvas )
+{
+	new Float:vfBaseOrigin[3], Float:vfRight[3], Float:vfDown[3];
+	vfBaseOrigin[0] = Float:gCanvas[canvas][originX];
+	vfBaseOrigin[1] = Float:gCanvas[canvas][originY];
+	vfBaseOrigin[2] = Float:gCanvas[canvas][originZ];
+	
+	vfRight[0] = Float:gCanvas[canvas][rightX];
+	vfRight[1] = Float:gCanvas[canvas][rightY];
+	vfRight[2] = Float:gCanvas[canvas][rightZ];
+	
+	vfDown[0] = Float:gCanvas[canvas][downX];
+	vfDown[1] = Float:gCanvas[canvas][downY];
+	vfDown[2] = Float:gCanvas[canvas][downZ];
+	
+	new Float:vfZeroZero[3], Float:vfBuffor[3];
+	new pixelsize = gCanvas[canvas][scale];
+	new width = gCanvas[canvas][cols];
+	new height = gCanvas[canvas][rows];
+	
+	//0,0 point
+	xs_vec_copy( vfBaseOrigin, vfZeroZero );
+	
+	xs_vec_copy( vfRight, vfBuffor );
+	xs_vec_mul_scalar( vfBuffor, pixelsize * width / 2.0 + pixelsize / 2.0, vfBuffor );
+	xs_vec_sub( vfZeroZero, vfBuffor, vfZeroZero);
+	
+	xs_vec_copy( vfDown, vfBuffor );
+	xs_vec_mul_scalar( vfBuffor, pixelsize * height / 2.0 + pixelsize / 2.0, vfBuffor);
+	xs_vec_sub( vfZeroZero, vfBuffor, vfZeroZero);
+	
+	gCanvas[canvas][zerozeroX] = _:(vfZeroZero[0]);
+	gCanvas[canvas][zerozeroY] = _:(vfZeroZero[1]);
+	gCanvas[canvas][zerozeroZ] = _:(vfZeroZero[2]);
 }
 
 createPixel( const Float: fOrigin[3], Float:fAngle[3], pixelSize )
@@ -384,6 +434,8 @@ bool:setSize( canvas, width, height, bool:force = false )
 		
 		gCanvasPixels[canvas][i] = 0;
 	}
+	
+	updateZeroZeroPoint( canvas );
 	return true;
 }
 

@@ -153,14 +153,26 @@ native register_canvas_program( const szName[], const szCallback[], forceWidth =
  *	data[0] - player id
  * "interaction:quit" - when player lost lock ( like dead, spawn )
  *	data[0] - player id
+ * "interaction:hover" - when player look at specific pixel
+ *	data[0] - player id
+ *	data[1] - col
+ *	data[2] - row
  *
  * @param program Program id
  * @param szEvent String with name of event.
  * @param szCallback String with name of public function to call on event
+ * @return callback handler
  */
 native register_program_event( program, const szEvent[], const szCallback[] );
 
-
+/**
+ * Remove event callback registered for event.
+ *
+ * @param program Program id
+ * @param szEvent String with name of event.
+ * @param handler Callback handler returned by register_program_event
+ */
+native unregister_program_event( program, const szEvent[], handler );
 
 
 /**

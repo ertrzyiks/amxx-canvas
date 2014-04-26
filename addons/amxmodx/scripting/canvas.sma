@@ -46,10 +46,12 @@ new Array:gProgramForceSizes;
 new Array:gProgramEvents;
 
 new info_target;
+new gSprite;
 
 new giCameraLocks[33] = { -1, ... };
 new giInteractionCanvas[33] = { -1, ... };
 
+#include "canvas/util.inl"
 #include "canvas/menus.inl"
 #include "canvas/renderer.inl"
 #include "canvas/camera_lock.inl"
@@ -66,6 +68,7 @@ public plugin_init ()
 	register_forward( FM_StartFrame, "fwStartFrame", 1 );
 	register_forward( FM_Think, "fwThinkCamera" );
 	register_forward( FM_CmdStart, "fwCmdStart" );
+	register_forward( FM_TraceLine, "fwHoverTraceLine" );
 	RegisterHam( Ham_Spawn, "player", "fwPlayerSpawn", 1 );
 	
 	giMaxPlayers = get_maxplayers();
@@ -80,7 +83,7 @@ public plugin_init ()
 	
 public plugin_precache ()
 {
-	precache_model( gszPixelModel );
+	gSprite = precache_model( gszPixelModel );
 	
 	info_target = engfunc( EngFunc_AllocString, "info_target" );
 	
@@ -136,24 +139,48 @@ public fwStartFrame()
 
 
 
-public fwTraceLine( const Float:fStart[3], const Float:fEnd[3], conditions, id, tr_handle )
+public fwTraceLine( const Float:vfStart[3], const Float:vfEnd[3], conditions, id, tr_handle )
 {
-	static Float:fOrigin[3], Float:fVec[3];
+	static Float:vfOrigin[3], Float:vfVec[3];
 	
 	if ( is_user_connected( id ) && gbTraceHooks[ id ] )
 	{
 		gbTraceHooks[ id ] = false;
 		giTraceHooksActive = giTraceHooksActive - 1;
 		
-		get_tr2( tr_handle, TR_vecEndPos, fOrigin );
-		get_tr2( tr_handle, TR_vecPlaneNormal, fVec );
+		get_tr2( tr_handle, TR_vecEndPos, vfOrigin );
+		get_tr2( tr_handle, TR_vecPlaneNormal, vfVec );
 		
-		createCanvas( fOrigin, fVec );
+		createCanvas( vfOrigin, vfVec );
 		showCanvasMenu( id );
 		
 		if ( giTraceHooksActive == 0 )
 		{
 			unregister_forward( FM_TraceLine, ghTraceLine );
+		}
+	}
+	
+	return FMRES_IGNORED;
+}
+
+public fwHoverTraceLine( const Float:vfStart[3], const Float:vfEnd[3], conditions, id, tr_handle )
+{
+	if ( !is_user_connected( id ) )
+	{
+		return FMRES_IGNORED;
+	}
+	
+	new col, row, data[3];
+	
+	for ( new i = 0; i < giCanvasIndex; i++ )
+	{
+		if ( getHoverPoint( i, vfStart, vfEnd, col, row ) )
+		{
+			data[0] = id;
+			data[1] = col;
+			data[2] = row;
+			triggerProgramEvent( i, gCanvas[i][programId], "interaction:hover", data, sizeof data );
+			break;
 		}
 	}
 	

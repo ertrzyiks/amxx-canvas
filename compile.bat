@@ -23,3 +23,7 @@ copy canvas-program-tetris.amxx addons\amxmodx\plugins\canvas-program-tetris.amx
 copy canvas-program-tetris.amxx ..\..\plugins\canvas-program-tetris.amxx
 del canvas-program-tetris.amxx
 
+"..\amxxpc.exe" addons\amxmodx\scripting\canvas-program-tictactoe.sma
+copy canvas-program-tictactoe.amxx addons\amxmodx\plugins\canvas-program-tictactoe.amxx
+copy canvas-program-tictactoe.amxx ..\..\plugins\canvas-program-tictactoe.amxx
+del canvas-program-tictactoe.amxx

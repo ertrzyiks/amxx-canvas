@@ -7,6 +7,7 @@ public plugin_natives()
 	register_native( "register_canvas_initializer", "nativeRegisterCanvasInitializer" );
 	register_native( "register_canvas_program", "nativeRegisterCanvasProgram" );
 	register_native( "register_program_event", "nativeRegisterProgramEvent" );
+	register_native( "unregister_program_event", "nativeUnregisterProgramEvent" );
 	
 	register_native( "canvas_lock_user_camera", "nativeCanvasLockUserCamera" );
 	register_native( "canvas_unlock_user_camera", "nativeCanvasUnlockUserCamera" );
@@ -74,7 +75,7 @@ public nativeRegisterProgramEvent( plugin, argc )
 {
 	if ( argc < 3 )
 	{
-		log_error( AMX_ERR_PARAMS, "register_program_event expects 4 arguments, %d given", argc );
+		log_error( AMX_ERR_PARAMS, "register_program_event expects 3 arguments, %d given", argc );
 		return -1;
 	}
 	
@@ -99,6 +100,38 @@ public nativeRegisterProgramEvent( plugin, argc )
 	
 	ArrayPushCell( cbs, cb );
 	return ArraySize( cbs ) - 1;
+}
+
+public nativeUnregisterProgramEvent( plugin, argc )
+{
+	if ( argc < 3 )
+	{
+		log_error( AMX_ERR_PARAMS, "unregister_program_event expects 3 arguments, %d given", argc );
+		return -1;
+	}
+	
+	new program = get_param( 1 );
+	
+	new szEvent[32];
+	get_string( 2 , szEvent, charsmax(szEvent) );
+	
+	new handler = get_param( 3 );
+	
+	new Trie:events = ArrayGetCell( gProgramEvents, program );
+	new Array:cbs;
+	
+	if ( !TrieGetCell( events, szEvent, cbs ) )
+	{
+		return 0;
+	}
+	
+	if ( handler < 0 && handler >= ArraySize( cbs ) )
+	{
+		return 0;
+	}
+	
+	ArraySetCell( cbs, handler, -1 );
+	return 1;
 }
 
 /**
