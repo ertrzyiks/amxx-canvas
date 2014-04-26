@@ -34,7 +34,7 @@
 #include <xs>
 
 #define PLUGIN "Canvas"
-#define VERSION "0.1.3"
+#define VERSION "0.1.4"
 #define AUTHOR "R3X"
 
 new const gszPixelModel[] = "sprites/pixel.spr";
