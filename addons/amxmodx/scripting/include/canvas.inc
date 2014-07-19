@@ -114,12 +114,25 @@ stock setB( color, newB )
 	return zipColor( r, g, newB );
 }
 
+/**
+ * Convert row/col coordinate to position index in colors lineary array. 
+ *
+ * @param row Row index
+ * @param col Col index
+ * @param width Canvas width
+ * @return Position index for setting block of colors.
+ */
+stock getPositionIndex( row, col, width )
+{
+	return row * width + col;
+}
+
 
 /**
  * Add new initialization handler. Map iteration number into pixel index to determine appearing order.
  *
  * @param szName String with name of initialize
- * @param szCallacbk String with name of public function to call
+ * @param szCallback String with name of public function to call
  * @param iTempo Count of pixels per tick
  * @param Initializer id
  */

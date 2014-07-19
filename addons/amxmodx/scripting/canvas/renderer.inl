@@ -1,3 +1,31 @@
+/**
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2014 Mateusz Derks
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *
+ * Proof-of-concept code which aim to provide programable displayer inside Half-Life multiplayer gameplay.
+ * This plugin is library which provide basic API for canvas and pixels manipulation.
+ *
+ * @ https://github.com/ertrzyiks/amxx-canvas
+ */
 #include <amxmodx>
 #include <amxmisc>
 #include <fakemeta>
@@ -48,20 +76,53 @@ enum CanvasInitializer
 	tempo
 };
 
-new bool:gbTraceHooks[32];
-new giTraceHooksActive = 0;
-new ghTraceLine;
-
+/**
+ * Holds timestamp of first frame of actual rendering of canvas.
+ * Index is canvas id.
+ */
 new Float:gCanvasStart[CANVAS_MAX_INSTANCES];
+
+/**
+ * Index is canvas id.
+ */
 new gCanvas[CANVAS_MAX_INSTANCES][Canvas];
+
+/**
+ * Array of pixels' colors. Linear array
+ * First level index is canvas id. 
+ * Second level index is index in linear array representing 2D board. 
+ * If you convert from row and col notation, use expression: 
+ *
+ * 	row * WIDTH + col.
+ */
 new gCanvasPixels[CANVAS_MAX_INSTANCES][CANVAS_MAX_PIXELS];
+
+/**
+ * Next free index for new canvas.
+ */
 new giCanvasIndex = 0;
 
+/**
+ * Index and tempo of initializer for canvas.
+ * First level index is canvas id. 
+ * Second level is key from CanvasInitializer enum.
+ */
 new gCanvasInitializers[CANVAS_MAX_INITIALIZER][CanvasInitializer];
+
+/**
+ * Strings with initializers' names..
+ * First level index is canvas id.
+ */
 new gCanvasInitializerNames[CANVAS_MAX_INITIALIZER][CANVAS_MAX_INIT_NAME];
+
+/**
+ * Next free index for new canvas initializer.
+ */
 new giCanvasInitializeIndex = 0;
 
-
+/**
+ * Called when initializer ends rendering and canvas is ready to draw on it.
+ */
 onCanvasReady( canvas )
 {
 	gCanvasStart[canvas] = get_gametime();
@@ -110,6 +171,13 @@ creatingTick( canvas )
 	gCanvas[canvas][init_tick] = tick + i;
 }
 
+/**
+ * Create single pixel of canvas on given position.
+ * Using plane and top-left corner position calculate world position for pixel sprite.
+ *
+ * @param cavnas Canvas id
+ * @param pixelIndex Index of pixel. Use getPositionIndex( row, col, width ) to retrieve it.
+ */
 creatingTickByPixel( canvas, pixelIndex )
 {		
 	new canvasData[Canvas];
@@ -148,9 +216,18 @@ creatingTickByPixel( canvas, pixelIndex )
 	xs_vec_add( vfMyOrigin, vfMyDown, vfMyOrigin );
 	xs_vec_add( vfMyOrigin, vfMyRight, vfMyOrigin );
 			
-	gCanvasPixels[canvas][ pixelIndex ] = createPixel( vfMyOrigin, vfAngle, pixelSize );
+	gCanvasPixels[canvas][ pixelIndex ] = createPixelObject( vfMyOrigin, vfAngle, pixelSize );
 }
 
+/**
+ * Setup new canvas instance.
+ *
+ * @param vfOrigin Position of center of canvas
+ * @param vfVec Vector defining canvas direction
+ * @param width Number of columns
+ * @param height Number of rows
+ * @param pixelsize Scale
+ */
 createCanvas ( const Float:vfOrigin[3], const Float:vfVec[3], width = 28, height = 8, pixelsize = 8 )
 {
 	addCanvasMenuItem( "Canvas #%d", giCanvasIndex + 1 );
@@ -202,6 +279,11 @@ createCanvas ( const Float:vfOrigin[3], const Float:vfVec[3], width = 28, height
 	return giCanvasIndex++;
 }
 
+/**
+ * Update top-left corner position after resize or reposition.
+ *
+ * @param canvas Canvas id
+ */
 updateZeroZeroPoint( canvas )
 {
 	new Float:vfBaseOrigin[3], Float:vfRight[3], Float:vfDown[3];
@@ -238,7 +320,14 @@ updateZeroZeroPoint( canvas )
 	gCanvas[canvas][zerozeroZ] = _:(vfZeroZero[2]);
 }
 
-createPixel( const Float: fOrigin[3], Float:fAngle[3], pixelSize )
+/**
+ * Create pixel entity with square shaped sprite.
+ *
+ * @param fOrigin Position of sprite
+ * @param fAngle Angle of sprite
+ * @param pixelSize Scale multiplier
+ */
+createPixelObject( const Float:fOrigin[3], Float:fAngle[3], pixelSize )
 {	
 	new ent = engfunc( EngFunc_CreateNamedEntity, info_target );
 	set_pev( ent, pev_origin, fOrigin );
@@ -258,12 +347,12 @@ createPixel( const Float: fOrigin[3], Float:fAngle[3], pixelSize )
 }
 
 /**
- * 
+ * Register new program
  *
  * @param szName String with program name
  * @param szFunction String with name of callback function called each server frame to draw canvas content
- * @param [forceWidth]
- * @param [forceHeight]
+ * @param [forceWidth] Require exact number of columns required by program
+ * @param [forceHeight] Require exact number of rows required by program
  * @param [plugin_id] Id of plugin to search for function. When -1, look for function it this plugin.
  */
 createProgram( const szName[], const szFunction[], forceWidth = 0, forceHeight = 0, plugin_id = -1 )
@@ -277,7 +366,6 @@ createProgram( const szName[], const szFunction[], forceWidth = 0, forceHeight =
 	else
 	{
 		cb = CreateOneForward( plugin_id, szFunction, FP_CELL, FP_FLOAT );
-		
 	}
 	
 	addProgramMenuItem( szName );
@@ -375,13 +463,21 @@ setupProgram( canvas, program )
 	}
 }
 
-
-
+/**
+ * @param canvas Canvas id
+ * @return Program id
+ */
 getProgram( canvas )
 {
 	return gCanvas[canvas][programId];
 }
 
+/**
+ * Change program. Lock canvas size if forced by program.
+ *
+ * @param canvas Canvas id
+ * @param program Program id
+ */
 setProgram( canvas, program )
 {
 	disposeProgram( canvas, gCanvas[canvas][programId] );
@@ -398,12 +494,27 @@ setProgram( canvas, program )
 	setupProgram( canvas, program );
 }
 
+/**
+ * Retrieve canvas size.
+ *
+ * @param canvas Canvas id
+ * @param width Returned by reference value of width
+ * @param height Returned by reference value of height
+ */
 getSize( canvas, &width, &height )
 {
 	width = gCanvas[canvas][cols];
 	height = gCanvas[canvas][rows];
 }
 
+/**
+ * Update canvas size. Optionally size can be forced.
+ *
+ * @param canvas Canvas id
+ * @param width New width
+ * @param height New height
+ * @param [force=false] When true, size will be forced
+ */
 bool:setSize( canvas, width, height, bool:force = false )
 {
 	new program = getProgram( canvas );
@@ -439,11 +550,21 @@ bool:setSize( canvas, width, height, bool:force = false )
 	return true;
 }
 
+/**
+ * @param canvas Canvas id
+ * @return Canvas size
+ */
 getScale( canvas )
 {
 	return gCanvas[canvas][scale];
 }
 
+/**
+ * Update scale of canvas.
+ *
+ * @param canvas Canvas id
+ * @param newScale New value of scale
+ */
 setScale( canvas, newScale )
 {
 	gCanvas[canvas][scale] = newScale;

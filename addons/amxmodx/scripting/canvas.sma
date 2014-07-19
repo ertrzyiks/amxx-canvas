@@ -39,17 +39,81 @@
 
 new const gszPixelModel[] = "sprites/pixel.spr";
 
+/**
+ * Maximum number of player that can play on server in one time.
+ */
 new giMaxPlayers;
 
+
+/**
+ * Array of registered programs. 
+ * Store collection of references to draw function.
+ */
 new Array:gPrograms;
+
+/**
+ * Array of forced size for program. 
+ * Store collection of int[2] with width and height. Both can be 0 to turn off limitation.
+ * Size synced with gPrograms.
+ */
 new Array:gProgramForceSizes;
+
+/**
+ * Array of registered events for program.
+ * Store collection of Tries 
+ *
+ *	[eventName] = Array:callbacks;
+ *
+ * Size synced with gPrograms and gProgramForceSizes.
+ */
 new Array:gProgramEvents;
 
+
+/**
+ * Reference to string "info_target" allocated on game memory space.
+ */
 new info_target;
+
+/**
+ * Reference to precached pixel sprite.
+ * Actually we use model name as sprite, reference is required for `make_line` util.
+ */
+ #pragma unused gSprite
 new gSprite;
 
+
+/**
+ * Holds player's camera lock. Map of
+ * 
+ *	[playerId] = canvasId or -1;
+ */
 new giCameraLocks[33] = { -1, ... };
+
+/**
+ * Holds player's current interaction canvas. Map of
+ * 
+ *	[playerId] = canvasId or -1;
+ */
 new giInteractionCanvas[33] = { -1, ... };
+
+/**
+ * Flag is set to true for player with active aim position sniffing. Map of
+ *
+ *	[playerId] = active_sniffing_or_not;
+ *
+ * Prevent stacking create canvas by aim requests..
+ */
+new bool:gbTraceHooks[32];
+
+/**
+ * Number of active traceline hooks. When reach 0, event handler for traceline should be unregistered.
+ */
+new giTraceHooksActive = 0;
+
+/**
+ * Handler to current traceline hook. Used for unregistering.
+ */
+new ghTraceLine;
 
 #include "canvas/util.inl"
 #include "canvas/menus.inl"
@@ -94,6 +158,14 @@ public plugin_precache ()
 	createScaleMenu();
 }
 
+/**
+ * Display management menu when command used
+ *
+ * @param id Id of player
+ * @param level Access level to command
+ * @param cid Command id
+ * @return PLUGIN_* callback result
+ */
 public cmdCanvas ( id, level, cid )
 {
 	if( !cmd_access( id, level, cid, 1 ) )
@@ -103,6 +175,9 @@ public cmdCanvas ( id, level, cid )
 	return PLUGIN_HANDLED;
 }
 
+/**
+ * Propagate frame from server to canvases
+ */
 public fwStartFrame()
 {
 	static Float:fTime = 0.0;
@@ -122,23 +197,35 @@ public fwStartFrame()
 			
 			if ( cb <= 0)
 			{
+				//Create some noise if no custom program used
 				handleDefaultProgram( i, fDelta );
 			}
 			else
 			{
+				//Give control over rendering to program handler
 				ExecuteForward( cb , ret, i, fDelta );
+				
+				//and check for user input
 				checkForInteraction( i );
 			}
 		}
 		else
 		{
+			//Trigger initialization tick
 			creatingTick( i );
 		}
 	}
 }
 
-
-
+/**
+ * Hooked once per user after request for create canvas by aim to retrieve aim position.
+ *
+ * @param vfStart Point when trace starts
+ * @param vfEnd Point when trace ends
+ * @param conditions Engine conditions, like ignore monsters
+ * @param id Player id
+ * @param tr_handle Trace result handle, used to read tracing data
+ */
 public fwTraceLine( const Float:vfStart[3], const Float:vfEnd[3], conditions, id, tr_handle )
 {
 	static Float:vfOrigin[3], Float:vfVec[3];
@@ -163,6 +250,36 @@ public fwTraceLine( const Float:vfStart[3], const Float:vfEnd[3], conditions, id
 	return FMRES_IGNORED;
 }
 
+/**
+ * Request canvas creation. Waits for next TraceLine event to read aim position gracefully.
+ *
+ * @param id Player id
+ */
+createCanvasByAim ( id )
+{
+	if ( gbTraceHooks[ id ] )
+	{
+		return;
+	}
+	
+	gbTraceHooks[ id ] = true;
+	giTraceHooksActive = giTraceHooksActive + 1;
+	
+	if ( giTraceHooksActive == 1 )
+	{	
+		ghTraceLine = register_forward( FM_TraceLine, "fwTraceLine", 1 );
+	}
+}
+
+/**
+ * Used to determine if user is looking at canvas and trigger input event if he is.
+ *
+ * @param vfStart Point when trace starts
+ * @param vfEnd Point when trace ends
+ * @param conditions Engine conditions, like ignore monsters
+ * @param id Player id
+ * @param tr_handle Trace result handle, used to read tracing data
+ */
 public fwHoverTraceLine( const Float:vfStart[3], const Float:vfEnd[3], conditions, id, tr_handle )
 {
 	if ( !is_user_connected( id ) )
@@ -185,20 +302,4 @@ public fwHoverTraceLine( const Float:vfStart[3], const Float:vfEnd[3], condition
 	}
 	
 	return FMRES_IGNORED;
-}
-
-createCanvasByAim ( id )
-{
-	if ( gbTraceHooks[ id ] )
-	{
-		return;
-	}
-	
-	gbTraceHooks[ id ] = true;
-	giTraceHooksActive = giTraceHooksActive + 1;
-	
-	if ( giTraceHooksActive == 1 )
-	{	
-		ghTraceLine = register_forward( FM_TraceLine, "fwTraceLine", 1 );
-	}
 }
