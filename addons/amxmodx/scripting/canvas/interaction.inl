@@ -34,7 +34,12 @@
 #define DEFAULT_DISTANCE 200.0
 #define DEFAULT_ANGLE 75.0
 
-
+/**
+ * Check if user is in interaction area. This area contains all places from which player can see
+ * canvas screen, so is close enough and with not so big angle.
+ *
+ * @param canvas Canvas id
+ */
 checkForInteraction( canvas )
 {
 	new program = getProgram( canvas );
@@ -77,6 +82,13 @@ checkForInteraction( canvas )
 	}
 }
 
+/**
+ * @param id Player id
+ * @param canvaw Canvas id
+ * @param fMaxDistance Maximum distance from canvas screen to player.
+ * @param fMaxAngle Maximum angle of view between player and canvas screen
+ * @return True if distance is lower than fMaxDistance and angle is lower than fMaxAngle, false otherwise
+ */
 bool:isInInteractionArea( id, canvas, Float:fMaxDistance = DEFAULT_DISTANCE, Float:fMaxAngle = DEFAULT_ANGLE )
 {
 	new Float:vfCanvasOrigin[3];
@@ -109,7 +121,10 @@ bool:isInInteractionArea( id, canvas, Float:fMaxDistance = DEFAULT_DISTANCE, Flo
 
 
 /**
- * 
+ * Listen to key events and indirectly trigger related keyboard events.
+ *
+ * @param id Player id
+ * @param uc_handle User command data handle
  */
 public fwCmdStart( id, uc_handle )
 {
@@ -160,6 +175,10 @@ public fwCmdStart( id, uc_handle )
 	return FMRES_HANDLED;
 }
 
+/**
+ * @param id Player id
+ * @param key Key bit IN_*
+ */
 onKeyDown( id, key )
 {
 	new canvas = giCameraLocks[ id ];
@@ -171,6 +190,10 @@ onKeyDown( id, key )
 	triggerProgramEvent( canvas, program, "interaction:keydown", data, sizeof( data ) );
 }
 
+/**
+ * @param id Player id
+ * @param key Key bit IN_*
+ */
 onKeyUp( id, key )
 {
 	new canvas = giCameraLocks[ id ];
@@ -182,6 +205,10 @@ onKeyUp( id, key )
 	triggerProgramEvent( canvas, program, "interaction:keyup", data, sizeof( data ) );
 }
 
+/**
+ * @param id Player id
+ * @param key Key bit IN_*
+ */
 onKeyPress( id, key )
 {
 	new canvas = giCameraLocks[ id ];
@@ -193,7 +220,16 @@ onKeyPress( id, key )
 	triggerProgramEvent( canvas, program, "interaction:keypress", data, sizeof( data ) );
 }
 
-
+/**
+ * Get
+ *
+ * @param canvas Canvas id
+ * @param vfStart Eye point
+ * @param vfEnd Last point to check from eye point along view vector
+ * @param col Output column index
+ * @param row Ouput row index
+ * @return true
+ */
 bool:getHoverPoint( canvas, const Float:vfStart[3], const Float:vfEnd[3], &col, &row )
 {	
 	/**
@@ -262,6 +298,14 @@ bool:getHoverPoint( canvas, const Float:vfStart[3], const Float:vfEnd[3], &col, 
 
 /**
  * Calculate cross point of plane Ax + By + Cz + D = 0 and line create from point vfStart to vfEnd.
+ *
+ * @param vfStart Start of line
+ * @param vfEnd End of line
+ * @param A Axis X multiplier in plane equation
+ * @param B Axis Y multiplier in plane equation
+ * @param C Axis Z multiplier in plane equation
+ * @param D Param of plane equation
+ * @param vfCrossPoint Output point
  */
 _calculateCrossPoint
 ( 
@@ -299,11 +343,37 @@ _calculateCrossPoint
 	vfCrossPoint[2] = az * t + bz;
 }
 
+/**
+ * Translate x/y coords to row and col notation. Take care of scale automatically.
+ *
+ * @param canvas Canvas id
+ * @param x Input coord x
+ * @param y Input coord y
+ * @param col Output column index
+ * @param row Output row index
+ */
 bool:_getPixelByCoords( canvas, Float:x, Float:y, &col, &row )
 {
 	new pixelsize = gCanvas[canvas][scale];
-	col = floatround( x / pixelsize, floatround_floor);
-	row = floatround( y / pixelsize, floatround_floor);
+	
+	new width = gCanvas[canvas][cols], tmpCol;
+	
+	tmpCol = floatround( x / pixelsize, floatround_floor);
+	if ( tmpCol < 0 || tmpCol >= width )
+	{
+		return false;
+	}
+	
+	new height = gCanvas[canvas][rows], tmpRow;
+	
+	tmpRow = floatround( y / pixelsize, floatround_floor);
+	if ( tmpRow < 0 || tmpRow >= height )
+	{
+		return false;
+	}
+	
+	col = tmpCol;
+	row = tmpRow;
 	return true;
 }
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE

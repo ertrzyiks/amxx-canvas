@@ -34,7 +34,7 @@
 #include <xs>
 
 #define PLUGIN "Canvas"
-#define VERSION "0.1.5"
+#define VERSION "0.1.6"
 #define AUTHOR "R3X"
 
 new const gszPixelModel[] = "sprites/pixel.spr";
@@ -103,7 +103,7 @@ new giInteractionCanvas[33] = { -1, ... };
  *
  * Prevent stacking create canvas by aim requests..
  */
-new bool:gbTraceHooks[32];
+new bool:gbTraceHooks[33];
 
 /**
  * Number of active traceline hooks. When reach 0, event handler for traceline should be unregistered.
@@ -124,6 +124,11 @@ new giHoverHooksActive = 0;
  * Handler to current hover traceline hook. Used for unregistering.
  */
 new ghHoverTraceLine;
+
+/**
+ * Flag for hover input. when set to true and there is no new hover event let sent {-1,-1} coords once.
+ */
+new bool:gbIsLookingAtCanvas[33][CANVAS_MAX_INSTANCES];
 
 #include "canvas/util.inl"
 #include "canvas/menus.inl"
@@ -301,11 +306,22 @@ public fwHoverTraceLine( const Float:vfStart[3], const Float:vfEnd[3], condition
 	{
 		if ( getHoverPoint( i, vfStart, vfEnd, col, row ) )
 		{
+			gbIsLookingAtCanvas[id][i] = true;
+			
 			data[0] = id;
 			data[1] = col;
 			data[2] = row;
 			triggerProgramEvent( i, gCanvas[i][programId], "interaction:hover", data, sizeof data );
 			break;
+		}
+		else if ( gbIsLookingAtCanvas[id][i] )
+		{
+			gbIsLookingAtCanvas[id][i] = false;
+			
+			data[0] = id;
+			data[1] = -1;
+			data[2] = -1;
+			triggerProgramEvent( i, gCanvas[i][programId], "interaction:hover", data, sizeof data );
 		}
 	}
 	
@@ -349,6 +365,3 @@ onEventListenerRemoved( const szName[] )
 		unregister_forward( FM_TraceLine, ghHoverTraceLine );
 	}
 }
-/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
-*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1045\\ f0\\ fs16 \n\\ par }
-*/

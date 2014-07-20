@@ -30,7 +30,7 @@
 
 new game;
 
-new gHoverX, gHoverY;
+new gHoverX = -1, gHoverY = -1;
 
 public plugin_init() 
 {
@@ -84,6 +84,6 @@ public onDraw( canvas )
 
 public onHover( canvas, const data[], len )
 {
-	gHoverX= data[1];
+	gHoverX = data[1];
 	gHoverY = data[2];
 }
