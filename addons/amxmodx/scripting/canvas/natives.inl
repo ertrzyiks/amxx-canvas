@@ -173,6 +173,9 @@ public nativeRegisterProgramEvent( plugin, argc )
 	}
 	
 	ArrayPushCell( cbs, cb );
+	
+	onEventListenerAdded( szEvent );
+	
 	return ArraySize( cbs ) - 1;
 }
 
@@ -213,6 +216,9 @@ public nativeUnregisterProgramEvent( plugin, argc )
 	}
 	
 	ArraySetCell( cbs, handler, -1 );
+	
+	onEventListenerRemoved( szEvent );
+	
 	return 1;
 }
  

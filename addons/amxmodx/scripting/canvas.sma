@@ -34,7 +34,7 @@
 #include <xs>
 
 #define PLUGIN "Canvas"
-#define VERSION "0.1.4"
+#define VERSION "0.1.5"
 #define AUTHOR "R3X"
 
 new const gszPixelModel[] = "sprites/pixel.spr";
@@ -115,6 +115,16 @@ new giTraceHooksActive = 0;
  */
 new ghTraceLine;
 
+/**
+ * Number of active hover event listeners. When reach 0, traceline handler will be unregistered.
+ */
+new giHoverHooksActive = 0;
+
+/**
+ * Handler to current hover traceline hook. Used for unregistering.
+ */
+new ghHoverTraceLine;
+
 #include "canvas/util.inl"
 #include "canvas/menus.inl"
 #include "canvas/renderer.inl"
@@ -132,11 +142,9 @@ public plugin_init ()
 	register_forward( FM_StartFrame, "fwStartFrame", 1 );
 	register_forward( FM_Think, "fwThinkCamera" );
 	register_forward( FM_CmdStart, "fwCmdStart" );
-	register_forward( FM_TraceLine, "fwHoverTraceLine" );
 	RegisterHam( Ham_Spawn, "player", "fwPlayerSpawn", 1 );
 	
 	giMaxPlayers = get_maxplayers();
-	
 	
 	gPrograms = ArrayCreate();
 	gProgramForceSizes = ArrayCreate( 2 );
@@ -303,3 +311,44 @@ public fwHoverTraceLine( const Float:vfStart[3], const Float:vfEnd[3], condition
 	
 	return FMRES_IGNORED;
 }
+
+/**
+ * Called when plugin register event listener. 
+ * Used for hooks setup/dismiss.
+ *
+ * @param szName Event name
+ */
+onEventListenerAdded( const szName[] )
+{
+	if ( equal( szName, "interaction:hover" ) )
+	{
+		giHoverHooksActive++;
+	}
+	
+	if ( giHoverHooksActive == 1 )
+	{
+		ghHoverTraceLine = register_forward( FM_TraceLine, "fwHoverTraceLine" );
+	}
+}
+
+/**
+ * Called when plugin unregister event listener. 
+ * Used for hooks setup/dismiss.
+ *
+ * @param szName Event name
+ */
+onEventListenerRemoved( const szName[] )
+{
+	if ( equal( szName, "interaction:hover" ) )
+	{
+		giHoverHooksActive--;
+	}
+	
+	if ( giHoverHooksActive == 0 )
+	{
+		unregister_forward( FM_TraceLine, ghHoverTraceLine );
+	}
+}
+/* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
+*{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1045\\ f0\\ fs16 \n\\ par }
+*/
