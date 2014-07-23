@@ -23,7 +23,12 @@ copy canvas-program-tetris.amxx addons\amxmodx\plugins\canvas-program-tetris.amx
 copy canvas-program-tetris.amxx ..\..\plugins\canvas-program-tetris.amxx
 del canvas-program-tetris.amxx
 
-"..\amxxpc.exe" addons\amxmodx\scripting\canvas-program-tictactoe.sma
-copy canvas-program-tictactoe.amxx addons\amxmodx\plugins\canvas-program-tictactoe.amxx
-copy canvas-program-tictactoe.amxx ..\..\plugins\canvas-program-tictactoe.amxx
-del canvas-program-tictactoe.amxx
+"..\amxxpc.exe" addons\amxmodx\scripting\canvas-program-hover.sma
+copy canvas-program-hover.amxx addons\amxmodx\plugins\canvas-program-hover.amxx
+copy canvas-program-hover.amxx ..\..\plugins\canvas-program-hover.amxx
+del canvas-program-hover.amxx
+
+"..\amxxpc.exe" addons\amxmodx\scripting\canvas-program-touch.sma
+copy canvas-program-touch.amxx addons\amxmodx\plugins\canvas-program-touch.amxx
+copy canvas-program-touch.amxx ..\..\plugins\canvas-program-touch.amxx
+del canvas-program-touch.amxx

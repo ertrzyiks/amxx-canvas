@@ -37,6 +37,12 @@
 #define VERSION "0.1.6"
 #define AUTHOR "R3X"
 
+#define PEV_COL pev_iuser1
+#define PEV_ROW pev_iuser2
+
+/**
+ * Pixel model location
+ */
 new const gszPixelModel[] = "sprites/pixel.spr";
 
 /**
@@ -73,6 +79,11 @@ new Array:gProgramEvents;
  * Reference to string "info_target" allocated on game memory space.
  */
 new info_target;
+
+/**
+ * Overwritten entity class name of pixel objects
+ */
+new const gszPixelClassName[] = "pixel";
 
 /**
  * Reference to precached pixel sprite.
@@ -147,6 +158,7 @@ public plugin_init ()
 	register_forward( FM_StartFrame, "fwStartFrame", 1 );
 	register_forward( FM_Think, "fwThinkCamera" );
 	register_forward( FM_CmdStart, "fwCmdStart" );
+	register_forward( FM_Touch, "fwTouch" );
 	RegisterHam( Ham_Spawn, "player", "fwPlayerSpawn", 1 );
 	
 	giMaxPlayers = get_maxplayers();
@@ -311,7 +323,7 @@ public fwHoverTraceLine( const Float:vfStart[3], const Float:vfEnd[3], condition
 			data[0] = id;
 			data[1] = col;
 			data[2] = row;
-			triggerProgramEvent( i, gCanvas[i][programId], "interaction:hover", data, sizeof data );
+			triggerEvent( i, "interaction:hover", data, sizeof data );
 			break;
 		}
 		else if ( gbIsLookingAtCanvas[id][i] )
@@ -321,9 +333,41 @@ public fwHoverTraceLine( const Float:vfStart[3], const Float:vfEnd[3], condition
 			data[0] = id;
 			data[1] = -1;
 			data[2] = -1;
-			triggerProgramEvent( i, gCanvas[i][programId], "interaction:hover", data, sizeof data );
+			triggerEvent( i, "interaction:hover", data, sizeof data );
 		}
 	}
+	
+	return FMRES_IGNORED;
+}
+
+/**
+ * @param id Player id
+ */
+public fwTouch( ent, id )
+{
+	static szClassName[32];
+	pev( ent, pev_classname, szClassName, 31 );
+	
+	if ( !equali( szClassName, gszPixelClassName) )
+	{
+		pev( id, pev_classname, szClassName, 31 );
+		if ( !equali( szClassName, gszPixelClassName) )
+		{
+			return FMRES_IGNORED;
+		}
+		
+		new tmp = ent;
+		ent = id;
+		id = tmp;
+	}
+	
+	new data[3];
+	data[0] = id;
+	data[1] = pev( ent, PEV_COL );
+	data[2] = pev( ent, PEV_ROW );
+	
+	new canvas = pev( ent, pev_owner );
+	triggerEvent( canvas, "interaction:touch", data, sizeof data );
 	
 	return FMRES_IGNORED;
 }

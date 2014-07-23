@@ -216,7 +216,7 @@ creatingTickByPixel( canvas, pixelIndex )
 	xs_vec_add( vfMyOrigin, vfMyDown, vfMyOrigin );
 	xs_vec_add( vfMyOrigin, vfMyRight, vfMyOrigin );
 			
-	gCanvasPixels[canvas][ pixelIndex ] = createPixelObject( vfMyOrigin, vfAngle, pixelSize );
+	gCanvasPixels[canvas][ pixelIndex ] = createPixelObject( canvas, vfMyOrigin, vfAngle, col, row, pixelSize );
 }
 
 /**
@@ -323,17 +323,19 @@ updateZeroZeroPoint( canvas )
 /**
  * Create pixel entity with square shaped sprite.
  *
+ * @param canvas Canvas id
  * @param fOrigin Position of sprite
  * @param fAngle Angle of sprite
  * @param pixelSize Scale multiplier
  */
-createPixelObject( const Float:fOrigin[3], Float:fAngle[3], pixelSize )
+createPixelObject( canvas, const Float:fOrigin[3], Float:fAngle[3], col, row, pixelSize )
 {	
 	new ent = engfunc( EngFunc_CreateNamedEntity, info_target );
 	set_pev( ent, pev_origin, fOrigin );
-	set_pev( ent, pev_classname, "pixel" );
+	set_pev( ent, pev_classname, gszPixelClassName );
 	set_pev( ent, pev_movetype, MOVETYPE_NONE );
-	set_pev( ent, pev_solid, SOLID_NOT );
+	//set_pev( ent, pev_solid, SOLID_NOT );
+	set_pev( ent, pev_solid, SOLID_TRIGGER );
 	engfunc( EngFunc_SetModel, ent, gszPixelModel );
 	set_pev( ent, pev_origin, fOrigin );
 	set_pev( ent, pev_angles, fAngle );
@@ -342,6 +344,10 @@ createPixelObject( const Float:fOrigin[3], Float:fAngle[3], pixelSize )
 	set_pev( ent, pev_renderfx, 0 );
 	set_pev( ent, pev_rendermode, kRenderNormal );
 	set_pev( ent, pev_renderamt, 255 );
+	
+	set_pev( ent, PEV_COL, col );
+	set_pev( ent, PEV_ROW, row );
+	set_pev( ent, pev_owner, canvas );
 	
 	return ent;
 }
@@ -433,6 +439,19 @@ triggerProgramEvent( canvas, program, const szEvent[], const data[] = {}, length
 		new ret;
 		ExecuteForward( fw, ret, canvas, PrepareArray( data ,length ), length );
 	}
+}
+
+/**
+ * Dispatch program event to current canvas program.
+ *
+ * @param canvas Canvas id
+ * @param szEvent String with name of event to trigger
+ * @param [data] Array with extra parameters
+ * @param [length] Length of array with extra parameters
+ */
+triggerEvent( canvas, const szEvent[], const data[] = {}, length = 0 )
+{
+	triggerProgramEvent( canvas, gCanvas[canvas][programId], szEvent, data, length );
 }
 
 /**

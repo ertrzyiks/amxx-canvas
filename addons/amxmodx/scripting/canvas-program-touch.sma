@@ -24,20 +24,18 @@
 #include <amxmisc>
 #include <canvas>
 
-#define PLUGIN "Canvas Program - TicTacToe"
+#define PLUGIN "Canvas Program - Touch demo"
 #define VERSION "1.0.0"
 #define AUTHOR "R3X"
 
 new game;
 
-new gHoverX = -1, gHoverY = -1;
-
 public plugin_init() 
 {
 	register_plugin( PLUGIN, VERSION, AUTHOR );
 	
-	game = register_canvas_program( "Tic-Tac-Toe", "onDraw" );
-	register_program_event( game, "interaction:hover", "onHover" );
+	game = register_canvas_program( "Touch demo", "onDraw" );
+	register_program_event( game, "interaction:touch", "onTouch" );
 }
 
 public onDraw( canvas )
@@ -45,45 +43,37 @@ public onDraw( canvas )
 	new width, height;
 	canvas_get_size( canvas, width, height );
 	
-	new hoverColor = zipColor( 255, 125, 0 );
-	
 	static iColors[CANVAS_MAX_PIXELS];
 	canvas_get_pixels( canvas, iColors, sizeof iColors );
 	
 	new index, r, g, b;
 	
-	new Float:t = 0.95;
+	new Float:t = 0.99;
 	for ( new i = 0; i < width ; i++ )
 	{
 		for ( new j = 0; j < height; j++ )
 		{
 			index = j * width + i;
+
+			unzipColor( iColors[ index ], r, g, b );
 			
-			if (gHoverX == i && gHoverY == j)
+			if ( r != 0 || g != 0 || b != 0 )
 			{
-				iColors[ index ] = hoverColor;
+				r = max( floatround(r * t, floatround_floor), 0 );
+				g = max( floatround(g * t, floatround_floor), 0 );
+				b = max( floatround(b * t, floatround_floor), 0 );
+				iColors[ index ] = zipColor( r, g, b );
 			}
-			else
-			{
-				unzipColor( iColors[ index ], r, g, b );
-				
-				if ( r != 0 || g != 0 || b != 0 )
-				{
-					r = max( floatround(r * t, floatround_floor), 0 );
-					g = max( floatround(g * t,floatround_floor), 0 );
-					b = max( floatround(b * t,floatround_floor), 0 );
-					iColors[ index ] = zipColor( r, g, b );
-				}
-			}
-			
 		}
 	}
 	
 	canvas_set_pixels( canvas, iColors );
 }
 
-public onHover( canvas, const data[], len )
+public onTouch( canvas, const data[], len )
 {
-	gHoverX = data[1];
-	gHoverY = data[2];
+	new col = data[1], row = data[2];
+	new hoverColor = zipColor( 255, 125, 0 );
+	
+	canvas_set_pixel( canvas, col, row, hoverColor );
 }
