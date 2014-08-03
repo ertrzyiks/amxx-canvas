@@ -159,8 +159,8 @@ creatingTick( canvas )
 		{
 			break;
 		}
-		
-		if ( !ExecuteForward( initCallback, pixelIndex, canvas, tick + i ) )
+
+		if ( !ExecuteForward( initCallback, pixelIndex, canvas, tick + i ) || gCanvasPixels[canvas][ pixelIndex ] != 0 )
 		{
 			pixelIndex = tick + i;
 		}
@@ -277,6 +277,56 @@ createCanvas ( const Float:vfOrigin[3], const Float:vfVec[3], width = 28, height
 	setSize( giCanvasIndex, width, height );
 	
 	return giCanvasIndex++;
+}
+
+/**
+ * Remove all pixel entities from world
+ *
+ * @param canvas Canvas id
+ */
+hideCanvas( canvas )
+{
+	new w, h, len;
+	getSize( canvas, w, h );
+	
+	len = w * h;
+	
+	for ( new i = 0; i < len; i++ )
+	{
+		hidePixel( canvas, i );	
+	}
+	
+	gCanvas[canvas][ready] = 0;
+}
+
+/**
+ * Let game loop reinit canvas if required
+ *
+ * @param canvas Canvas id
+ */
+showCanvas( canvas )
+{
+	if ( gCanvas[canvas][ready] == 0 )
+	{
+		gCanvas[canvas][init_tick] = 0;
+	}
+}
+
+/**
+ * Remove single pixel entity
+ *
+ * @param canvas Canvas id
+ * @param pixelCanvas Pixel index
+ */
+hidePixel( canvas, pixelIndex )
+{
+	new ent = gCanvasPixels[canvas][pixelIndex];
+	
+	if ( pev_valid( ent ) )
+	{
+		engfunc( EngFunc_RemoveEntity, ent );
+	}
+	gCanvasPixels[canvas][pixelIndex] = 0;
 }
 
 /**
@@ -492,6 +542,24 @@ getProgram( canvas )
 }
 
 /**
+ * Set all pixels to black
+ *
+ * @param canvas Canvas id
+ */
+clearScreen( canvas )
+{
+	for ( new i = 0; i < CANVAS_MAX_PIXELS; i++ )
+	{
+		new ent = gCanvasPixels[canvas][i];
+		
+		if ( pev_valid( ent ) )
+		{
+			set_pev( ent, pev_rendercolor, Float:{ 1.0, 1.0, 1.0 } );
+		}
+	}
+}
+
+/**
  * Change program. Lock canvas size if forced by program.
  *
  * @param canvas Canvas id
@@ -500,6 +568,8 @@ getProgram( canvas )
 setProgram( canvas, program )
 {
 	disposeProgram( canvas, gCanvas[canvas][programId] );
+	
+	clearScreen( canvas );
 	
 	gCanvas[canvas][programId] = program;
 	

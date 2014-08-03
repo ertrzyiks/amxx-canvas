@@ -34,7 +34,7 @@
 #include <xs>
 
 #define PLUGIN "Canvas"
-#define VERSION "0.1.6"
+#define VERSION "0.1.7"
 #define AUTHOR "R3X"
 
 #define PEV_COL pev_iuser1
@@ -168,6 +168,22 @@ public plugin_init ()
 	gProgramEvents = ArrayCreate();
 	
 	createProgram( "Default", "handleDefaultProgram" );
+}
+
+public plugin_pause()
+{
+	for ( new i = 0; i < giCanvasIndex; i++)
+	{
+		hideCanvas( i );
+	}
+}
+
+public plugin_unpause()
+{
+	for ( new i = 0; i < giCanvasIndex; i++)
+	{
+		showCanvas( i );
+	}
 }
 	
 public plugin_precache ()
