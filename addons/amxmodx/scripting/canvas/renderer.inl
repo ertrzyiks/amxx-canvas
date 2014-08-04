@@ -162,13 +162,31 @@ creatingTick( canvas )
 
 		if ( !ExecuteForward( initCallback, pixelIndex, canvas, tick + i ) || gCanvasPixels[canvas][ pixelIndex ] != 0 )
 		{
-			pixelIndex = tick + i;
+			pixelIndex = getFirstEmptyPixel( canvas );
 		}
 	
 		creatingTickByPixel( canvas, pixelIndex );
 	}
 	
 	gCanvas[canvas][init_tick] = tick + i;
+}
+
+/**
+ * Get first free slot for pixel
+ *
+ * @param canvas Canvas id
+ */
+getFirstEmptyPixel( canvas )
+{
+	for ( new i = 0; i < CANVAS_MAX_PIXELS; i++ )
+	{
+		if ( !pev_valid( gCanvasPixels[canvas][ i ] ) )
+		{
+			return i;
+		}
+	}
+	
+	return 0;
 }
 
 /**
