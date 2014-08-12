@@ -490,22 +490,29 @@ handleDefaultProgram( canvas, Float:fDelta )
  * @param szEvent String with name of event to trigger
  * @param [data] Array with extra parameters
  * @param [length] Length of array with extra parameters
+ * @param [eventType] Define type of event
  */
-triggerProgramEvent( canvas, program, const szEvent[], const data[] = {}, length = 0 )
+triggerProgramEvent( canvas, program, const szEvent[], const data[] = {}, length = 0, EventType:eventType = EVENT_BROADCAST )
 {
-	new Trie:events = ArrayGetCell( gProgramEvents, program );
-	new Array:callbacks;
-	
-	if ( !TrieGetCell( events, szEvent, callbacks ) )
+	if ( eventType != EVENT_INTERNAL )
 	{
-		return;
+		new Trie:events = ArrayGetCell( gProgramEvents, program );
+		new Array:callbacks;
+		
+		if ( TrieGetCell( events, szEvent, callbacks ) )
+		{	
+			for ( new i = 0; i < ArraySize( callbacks ); i++ )
+			{
+				new fw = ArrayGetCell( callbacks, i );
+				new ret;
+				ExecuteForward( fw, ret, canvas, PrepareArray( data ,length ), length );
+			}
+		}
 	}
 	
-	for ( new i = 0; i < ArraySize( callbacks ); i++ )
+	if ( eventType != EVENT_EXTERNAL )
 	{
-		new fw = ArrayGetCell( callbacks, i );
-		new ret;
-		ExecuteForward( fw, ret, canvas, PrepareArray( data ,length ), length );
+		onTriggerProgramEvent( canvas, program, szEvent, data, length );
 	}
 }
 
@@ -516,10 +523,11 @@ triggerProgramEvent( canvas, program, const szEvent[], const data[] = {}, length
  * @param szEvent String with name of event to trigger
  * @param [data] Array with extra parameters
  * @param [length] Length of array with extra parameters
+ * @param [eventType] Define type of event
  */
-triggerEvent( canvas, const szEvent[], const data[] = {}, length = 0 )
+triggerEvent( canvas, const szEvent[], const data[] = {}, length = 0, EventType:eventType = EVENT_BROADCAST )
 {
-	triggerProgramEvent( canvas, gCanvas[canvas][programId], szEvent, data, length );
+	triggerProgramEvent( canvas, gCanvas[canvas][programId], szEvent, data, length, eventType );
 }
 
 /**
@@ -654,6 +662,7 @@ bool:setSize( canvas, width, height, bool:force = false )
 	}
 	
 	updateZeroZeroPoint( canvas );
+	initInteraction( canvas );
 	return true;
 }
 
@@ -677,7 +686,7 @@ setScale( canvas, newScale )
 	gCanvas[canvas][scale] = newScale;
 	setSize( canvas, gCanvas[canvas][cols], gCanvas[canvas][rows], true );
 	
-	for ( new id = 1; id < 33; id++ )
+	for ( new id = 1; id <= giMaxPlayers; id++ )
 	{
 		if ( giCameraLocks[id] == canvas )
 		{

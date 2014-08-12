@@ -35,6 +35,35 @@
 #define DEFAULT_ANGLE 75.0
 
 /**
+ * Col and row index of last canvas interaction
+ */
+new giLastHoverInteractionPos[CANVAS_MAX_INSTANCES][33][2];
+
+/**
+ * (Re)initialize canvas interactions data.
+ *
+ * @param canvas Canvas id
+ */
+initInteraction( canvas )
+{
+	for ( new id = 1; id <= giMaxPlayers; id++ )
+	{
+		initPlayerInteraction( canvas, id );
+	}
+}
+
+/**
+ * (Re)initialize canvas interactions data for single player.
+ *
+ * @param canvas Canvas id
+ * @param id Player id
+ */
+initPlayerInteraction( canvas, id )
+{
+	giLastHoverInteractionPos[ canvas ][ id ] = { -1, -1 };
+}
+
+/**
  * Check if user is in interaction area. This area contains all places from which player can see
  * canvas screen, so is close enough and with not so big angle.
  *
@@ -224,13 +253,14 @@ onKeyPress( id, key )
  * Get
  *
  * @param canvas Canvas id
+ * @param id Player id
  * @param vfStart Eye point
  * @param vfEnd Last point to check from eye point along view vector
  * @param col Output column index
  * @param row Ouput row index
  * @return true
  */
-bool:getHoverPoint( canvas, const Float:vfStart[3], const Float:vfEnd[3], &col, &row )
+bool:getHoverPoint( canvas, id, const Float:vfStart[3], const Float:vfEnd[3], &col, &row )
 {	
 	/**
 	 * Calculate canvas plane
@@ -290,10 +320,28 @@ bool:getHoverPoint( canvas, const Float:vfStart[3], const Float:vfEnd[3], &col, 
 	
 	new Float:fAngle = floatatan2( det, dot, degrees);
 	
+	//client_print(0, print_chat, "Angle %f", fAngle);
+	
 	new Float:x = fDistance * floatsin( fAngle, degrees);
 	new Float:y = fDistance * floatcos( fAngle, degrees );
+		
+	new bool:result = _getPixelByCoords( canvas, x, y, col, row );
 	
-	return _getPixelByCoords( canvas, x, y, col, row );
+	if ( !result )
+	{
+		interpolateHoverPoints( canvas, id, col, row )
+	}
+	
+	return result;
+}
+
+/**
+ * 
+ */
+rememberLastHoverInteractionPos( canvas, id, col, row )
+{
+	giLastHoverInteractionPos[ canvas ][ id ][ 0 ] = col;
+	giLastHoverInteractionPos[ canvas ][ id ][ 1 ] = row;
 }
 
 /**
@@ -357,24 +405,128 @@ bool:_getPixelByCoords( canvas, Float:x, Float:y, &col, &row )
 	new pixelsize = gCanvas[canvas][scale];
 	
 	new width = gCanvas[canvas][cols], tmpCol;
+	new height = gCanvas[canvas][rows], tmpRow;
+	
+	new bool:isValid = true;
 	
 	tmpCol = floatround( x / pixelsize, floatround_floor);
 	if ( tmpCol < 0 || tmpCol >= width )
 	{
-		return false;
+		isValid = false;
 	}
-	
-	new height = gCanvas[canvas][rows], tmpRow;
-	
-	tmpRow = floatround( y / pixelsize, floatround_floor);
-	if ( tmpRow < 0 || tmpRow >= height )
+	else
 	{
-		return false;
+		tmpRow = floatround( y / pixelsize, floatround_floor);
+		if ( tmpRow < 0 || tmpRow >= height )
+		{
+			isValid = false;
+		}
 	}
 	
 	col = tmpCol;
 	row = tmpRow;
-	return true;
+	return isValid;
+}
+
+/**
+ * Call missing hover events
+ *
+ * @param canvas Canvas id
+ * @param id Player id
+ * @param col
+ * @param row
+ * @return count of interpolated events triggered
+ */
+interpolateHoverPoints( canvas, id, col, row )
+{
+	if ( get_pcvar_num(gcvarInterpolate) == 0 )
+	{
+		return;
+	}
+	/*if ( false == gbInHoverInteraction[canvas][id] )
+	{
+		return;
+	}*/
+	
+	/*if ( oldCol == -1 || oldRow == -1 || col == -1 ||  row == -1 )
+	{
+		return;
+	}*/
+	
+	new oldCol = giLastHoverInteractionPos[ canvas ][ id ][ 0 ];
+	new oldRow = giLastHoverInteractionPos[ canvas ][ id ][ 1 ];
+	
+	new data[ 3 ];
+	data[ 0 ] = id & 0x0;
+	
+	new diffCol = col - oldCol;
+	new diffRow = row - oldRow;
+	
+	new absDiffCol = abs( diffCol );
+	new absDiffRow = abs( diffRow );
+	
+	if ( ( absDiffCol + absDiffRow ) < 2 )
+	{
+		return;
+	}
+	
+	if ( absDiffRow > absDiffCol )
+	{
+		new Float:a = diffCol * 1.0 / diffRow;
+		new Float:b = col * 1.0 - a * row; 
+		
+		for ( new i = 0; i < absDiffRow; i++ )
+		{
+			data[ 2 ] = oldRow + i * (( diffRow > 0 ) ? 1 : -1);
+			data[ 1 ] = floatround(a * data[ 2 ] + b);
+			triggerEvent( canvas, "interaction:hover", data, sizeof data, EVENT_EXTERNAL );
+		}
+	}
+	else
+	{
+		new Float:a = diffRow * 1.0 / diffCol;
+		new Float:b = row * 1.0 - a * col; 
+		
+		for ( new i = 0; i < absDiffCol; i++ )
+		{
+			data[ 1 ] = oldCol + i * (( diffCol > 0 ) ? 1 : -1);
+			data[ 2 ] = floatround(a * data[ 1 ] + b);
+			triggerEvent( canvas, "interaction:hover", data, sizeof data, EVENT_EXTERNAL );
+		}
+	}
+}
+
+/**
+ * @param canvas Canvas id
+ * @param program Program id
+ * @param data Hover data
+ * @param data Hover data length
+ */
+onTriggerInteractionHover( canvas, program, const data[] = {}, length = 0 )
+{
+	#pragma unused program
+	#pragma unused length
+	
+	new  id = data[ 0 ];
+	new col = data[ 1 ];
+	new row = data[ 2 ];
+	
+	interpolateHoverPoints( canvas, id, col, row );
+}
+
+/**
+ * @param canvas Canvas id
+ * @param program Program id
+ * @param szEvent Event name
+ * @param data Event data
+ * @param length Event data length
+ */
+onTriggerProgramEvent( canvas, program, const szEvent[], const data[] = {}, length = 0 )
+{
+	if ( equal( szEvent, "interaction:hover" ) )
+	{
+		onTriggerInteractionHover( canvas, program, data, length );
+	}
 }
 /* AMXX-Studio Notes - DO NOT MODIFY BELOW HERE
 *{\\ rtf1\\ ansi\\ deff0{\\ fonttbl{\\ f0\\ fnil Tahoma;}}\n\\ viewkind4\\ uc1\\ pard\\ lang1045\\ f0\\ fs16 \n\\ par }

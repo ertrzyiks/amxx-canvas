@@ -34,11 +34,20 @@
 #include <xs>
 
 #define PLUGIN "Canvas"
-#define VERSION "0.1.7"
+#define VERSION "0.1.8"
 #define AUTHOR "R3X"
 
 #define PEV_COL pev_iuser1
 #define PEV_ROW pev_iuser2
+
+/**
+ *
+ */
+enum EventType{
+	EVENT_INTERNAL,
+	EVENT_EXTERNAL,
+	EVENT_BROADCAST
+};
 
 /**
  * Pixel model location
@@ -117,6 +126,12 @@ new giInteractionCanvas[33] = { -1, ... };
 new bool:gbTraceHooks[33];
 
 /**
+ * Flag keep information about handling hover. 
+ * Make sure to handle just one hover traceline per frame.
+ */
+new bool:gbHoverTraceDone[33];
+
+/**
  * Number of active traceline hooks. When reach 0, event handler for traceline should be unregistered.
  */
 new giTraceHooksActive = 0;
@@ -136,10 +151,8 @@ new giHoverHooksActive = 0;
  */
 new ghHoverTraceLine;
 
-/**
- * Flag for hover input. when set to true and there is no new hover event let sent {-1,-1} coords once.
- */
-new bool:gbIsLookingAtCanvas[33][CANVAS_MAX_INSTANCES];
+
+new gcvarInterpolate;
 
 #include "canvas/util.inl"
 #include "canvas/menus.inl"
@@ -160,6 +173,8 @@ public plugin_init ()
 	register_forward( FM_CmdStart, "fwCmdStart" );
 	register_forward( FM_Touch, "fwTouch" );
 	RegisterHam( Ham_Spawn, "player", "fwPlayerSpawn", 1 );
+	
+	gcvarInterpolate = register_cvar("amx_canvas_interpolate", "1");
 	
 	giMaxPlayers = get_maxplayers();
 	
@@ -256,6 +271,12 @@ public fwStartFrame()
 			creatingTick( i );
 		}
 	}
+	
+	
+	for ( new i = 1; i < 33; i++ )
+	{
+		gbHoverTraceDone[i] = false;
+	}
 }
 
 /**
@@ -323,33 +344,30 @@ createCanvasByAim ( id )
  */
 public fwHoverTraceLine( const Float:vfStart[3], const Float:vfEnd[3], conditions, id, tr_handle )
 {
-	if ( !is_user_connected( id ) )
+	if ( !is_user_connected( id ) || gbHoverTraceDone[id] )
 	{
 		return FMRES_IGNORED;
 	}
+	
+	gbHoverTraceDone[id] = true;
 	
 	new col, row, data[3];
 	
 	for ( new i = 0; i < giCanvasIndex; i++ )
 	{
-		if ( getHoverPoint( i, vfStart, vfEnd, col, row ) )
-		{
-			gbIsLookingAtCanvas[id][i] = true;
-			
+		if ( getHoverPoint( i, id, vfStart, vfEnd, col, row ) )
+		{			
 			data[0] = id;
 			data[1] = col;
 			data[2] = row;
 			triggerEvent( i, "interaction:hover", data, sizeof data );
+			
+			rememberLastHoverInteractionPos( i, id, col, row );
 			break;
 		}
-		else if ( gbIsLookingAtCanvas[id][i] )
+		else
 		{
-			gbIsLookingAtCanvas[id][i] = false;
-			
-			data[0] = id;
-			data[1] = -1;
-			data[2] = -1;
-			triggerEvent( i, "interaction:hover", data, sizeof data );
+			rememberLastHoverInteractionPos( i, id, col, row );
 		}
 	}
 	
