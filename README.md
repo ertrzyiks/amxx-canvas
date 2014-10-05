@@ -1,4 +1,4 @@
-amxx-canvas
+amxx-canvas [![Build Status](https://travis-ci.org/ertrzyiks/amxx-canvas.svg?branch=master)](https://travis-ci.org/ertrzyiks/amxx-canvas)
 ===========
 
 ## About

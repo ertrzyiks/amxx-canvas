@@ -1,0 +1,26 @@
+{
+  "name": "travis-playgroun",
+  "version": "0.0.0",
+  "description": "travis-playgroun ================",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "devDependencies": {
+    "grunt": "latest",
+    "grunt-amxmodx": "latest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ertrzyiks/travis-playgroun.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ertrzyiks/travis-playgroun/issues"
+  },
+  "amxmodx_versions": [
+    "1.8.1",
+    "1.8.2"
+  ]
+}
